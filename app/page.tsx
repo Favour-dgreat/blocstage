@@ -552,7 +552,7 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                Traditional-Friendly. Web3-Ready.
+                Traditional-<br className="hidden md:block" />Friendly. <br className="hidden md:block" /> Web3-Ready.
               </h2>
             </div>
             <div className="relative">
