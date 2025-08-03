@@ -1,122 +1,250 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const SignupPage = () => {
+  const [step, setStep] = useState(1);
   const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    country: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleNext = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    setStep(2);
+  };
+  const router = useRouter();
+
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    // Add sign-up logic
+    const { firstName, lastName, country, email, password, confirmPassword } = form;
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+    router.push("/otppage"); // Redirect to OTP page after signup
+    // Handle signup logic here
   };
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="flex min-h-screen">
+    <div className="absolute px-10 md:px-24 mt-6">
+                <Image className="justify-center items-center"
+                src="/images/logoorange.png"
+                alt="blocStage"
+                width={120}
+                height={32}
+                />
+            </div>
       {/* Left: Form Section */}
       <div className="flex-1 flex flex-col justify-center px-10 md:px-24 bg-white">
-        {/* Logo */}
-        <div className="mb-8">
-          <Image src="/images/logoorange.png" alt="blocStage" width={120} height={32} />
-        </div>
+       
 
         {/* Heading */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Create Account</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            {step === 1 ? "Create Account" : "Tell us About Yourself"}
+          </h1>
           <p className="text-gray-600">
-            It’s free to create an account and get started with Tix!
+            It’s free to create an account and get started with Blocstage!
           </p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSignup} className="space-y-6">
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-400 mb-1">
-              Email Address
-            </label>
-            <input
-              type="email"
-              name="email"
-              placeholder="Johndoe@gmail.com"
-              value={form.email}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              required
-            />
-          </div>
+<form onSubmit={step === 1 ? handleNext : handleSignup} className="space-y-6">
+  {step === 1 ? (
+    <>
+      <div>
+        <label className="block text-sm font-semibold text-gray-400 mb-1">
+          Email Address
+        </label>
+        <input
+          type="email"
+          name="email"
+          placeholder="Johndoe@gmail.com"
+          value={form.email}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+          required
+        />
+      </div>
 
-          {/* Password */}
-          <div className="relative">
-            <label className="block text-sm font-semibold text-gray-400 mb-1">
-              Password
-            </label>
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Enter password"
-              value={form.password}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              required
-            />
-            <span
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-[42px] cursor-pointer text-gray-500"
-            >
-                  {showPassword ? (
-                    <EyeOff size={20} />
-                  ) : (
-                    <Eye size={20} />
-                  )}
-            </span>
-          </div>
+      {/* Password */}
+      <div className="relative">
+        <label className="block text-sm font-semibold text-gray-400 mb-1">
+          Password
+        </label>
+        <input
+          type={showPassword ? "text" : "password"}
+          name="password"
+          placeholder="Enter password"
+          value={form.password}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+          required
+        />
+        <span
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-3 top-[42px] cursor-pointer text-gray-500"
+        >
+          {showPassword ? (
+            <EyeOff size={20} />
+          ) : (
+            <Eye size={20} />
+          )}
+        </span>
+      </div>
 
-          {/* Confirm Password */}
-          <div className="relative">
-            <label className="block text-sm font-semibold text-gray-400 mb-1">
-              Confirm Password
-            </label>
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              name="confirmPassword"
-              placeholder="Repeat password"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              required
-            />
-            <span
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-[42px] cursor-pointer text-gray-500"
-            >
-               {showPassword ? (
-                    <EyeOff size={20} />
-                  ) : (
-                    <Eye size={20} />
-                  )}
-            </span>
-          </div>
+      {/* Confirm Password */}
+      <div className="relative">
+        <label className="block text-sm font-semibold text-gray-400 mb-1">
+          Confirm Password
+        </label>
+        <input
+          type={showConfirmPassword ? "text" : "password"}
+          name="confirmPassword"
+          placeholder="Repeat password"
+          value={form.confirmPassword}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+          required
+        />
+        <span
+          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+          className="absolute right-3 top-[42px] cursor-pointer text-gray-500"
+        >
+          {showConfirmPassword ? (
+            <EyeOff size={20} />
+          ) : (
+            <Eye size={20} />
+          )}
+        </span>
+      </div>
 
-          {/* Button */}
-          <button
-            type="submit"
-            className="w-full py-3 bg-[#0C2D48] text-white rounded-md font-semibold hover:bg-[#0a263c] transition"
-          >
-            Continue
-          </button>
-        </form>
+      {/* Button */}
+      <button
+        type="submit"
+        className="w-full py-3 bg-[#0C2D48] text-white rounded-md font-semibold hover:bg-[#0a263c] transition"
+      >
+        Continue
+      </button>
+    </>
+  ) : (
+    <>
+      <div>
+        <label className="block text-sm font-semibold text-gray-400 mb-1">
+          First Name
+        </label>
+        <input
+          type="text"
+          name="firstName"
+          placeholder="John"
+          value={form.firstName}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-400 mb-1">
+          Last Name
+        </label>
+        <input
+          type="text"
+          name="lastName"
+          placeholder="Doe"
+          value={form.lastName}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-400 mb-1">
+          Country
+        </label>
+        <select
+          name="country"
+          value={form.country}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+          required
+        >
+          <option value="">Select your country</option>
+          <option value="Nigeria">Nigeria</option>
+          <option value="Ghana">Ghana</option>
+          <option value="Togo">Togo</option>
+          <option value="Senegal">Senegal</option>
+          <option value="Mali">Mali</option>
+          <option value="Guinea">Guinea</option>
+          <option value="Burkina Faso">Burkina Faso</option>
+          <option value="Niger">Niger</option>
+          <option value="Liberia">Liberia</option>
+          <option value="Cote d'Ivoire">Cote d'Ivoire</option>
+          <option value="Benin">Benin</option>
+          <option value="Tanzania">Tanzania</option>
+          <option value="Kenya">Kenya</option>
+          <option value="South Africa">South Africa</option>
+          <option value="Uganda">Uganda</option>
+          <option value="Rwanda">Rwanda</option>
+          <option value="Zambia">Zambia</option>
+          <option value="Zimbabwe">Zimbabwe</option>
+          <option value="Cameroon">Cameroon</option>
+          <option value="Congo">Congo</option>
+          <option value="Gabon">Gabon</option>
+          <option value="Angola">Angola</option>
+          <option value="Mozambique">Mozambique</option>
+          <option value="Namibia">Namibia</option>
+          <option value="Botswana">Botswana</option>
+          <option value="Malawi">Malawi</option>
+          <option value="Sierra Leone">Sierra Leone</option>
+          <option value="Togo">Togo</option>
+          <option value="Mauritius">Mauritius</option>
+          <option value="Madagascar">Madagascar</option>
+          <option value="USA">USA</option>
+          <option value="Canada">Canada</option>
+          <option value="UK">UK</option>
+      
+        </select>
+      </div>
+
+      {/* Button */}
+      <button
+        type="submit"
+        className="w-full py-3 bg-[#0C2D48] text-white rounded-md font-semibold hover:bg-[#0a263c] transition"
+      >
+        
+        Create Account
+      </button>
+    </>
+  )}
+</form>
 
         {/* Sign In Link */}
         <p className="text-center mt-6 text-gray-600 text-sm">
@@ -138,6 +266,6 @@ const SignupPage = () => {
       </div>
     </div>
   );
-};
+}
 
 export default SignupPage;
