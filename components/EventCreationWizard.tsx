@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { Check } from 'lucide-react';
 import EventDetailsForm from './EventDetailsForm';
+import EventDetailsPreview from './EventDetailsPreview';
+
 import AgendaScheduleForm from './AgendaScheduleForm';
+import TicketsForm from './TicketsForm';
+import EventPreview from './EventPreview';
 
 const steps = [
   { id: 'details', title: 'Event Details', completed: false },
@@ -22,7 +26,8 @@ export default function EventCreationWizard() {
     endDate: '',
     image: null,
     isOnline: false,
-    sessions: []
+    sessions: [],
+    tickets: []
   });
 
   const handleNext = () => {
@@ -42,7 +47,7 @@ export default function EventCreationWizard() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-8 py-8">
+    <div className="ml-64 max-w-6xl mx-auto px-8 py-8">
       {/* Breadcrumb */}
       <div className="mb-8">
         <div className="flex items-center text-sm text-gray-500">
@@ -57,28 +62,27 @@ export default function EventCreationWizard() {
         <div className="flex items-center justify-between max-w-4xl">
           {steps.map((step, index) => (
             <div key={step.id} className="flex items-center flex-1">
-              <div className="flex flex-col items-center">
-                 <div className="text-xs font-light mb-1 text-[#092C4C]">
-                   {step.title}
+              <div className="flex items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+                  index <= currentStep 
+                    ? 'bg-blue-900 border-blue-900 text-white' 
+                    : 'border-gray-300 text-gray-400'
+                }`}>
+                  {index < currentStep ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    <span className="text-sm font-medium">{index + 1}</span>
+                  )}
                 </div>
-                <div className="flex flex-col items-center">
-               
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                            index <= currentStep 
-                            ? 'bg-[#f9fafa] border-[#092C4C] text-white' 
-                            : 'border-[#092C4C] text-gray-400 bg-[#fff]'
-                    }`}>
-                        {index < currentStep ? (
-                            <Check className="w-4 h-4 text-[#092C4C]" />
-                        ) : (
-                            null
-                        )}
-                    </div>
-                </div>
+                <span className={`ml-3 text-sm font-medium ${
+                  index <= currentStep ? 'text-blue-900' : 'text-gray-400'
+                }`}>
+                  {/* {step.title} */}
+                </span>
               </div>
               {index < steps.length - 1 && (
-                <div className={`flex-1 h-1.5 mx-2 mt-5 ${
-                  index < currentStep ? 'bg-[#092C4C]' : 'bg-gray-200'
+                <div className={`flex-1 h-0.5 mx-4 ${
+                  index < currentStep ? 'bg-blue-900' : 'bg-gray-200'
                 }`} />
               )}
             </div>
@@ -89,10 +93,7 @@ export default function EventCreationWizard() {
       {/* Content */}
       <div className="bg-white rounded-lg">
         <div className="p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Event</h1>
-            <p className="text-gray-600">Let's get your event up and running!</p>
-          </div>
+          
 
           {currentStep === 0 && (
             <EventDetailsForm 
@@ -103,8 +104,7 @@ export default function EventCreationWizard() {
           )}
 
           {currentStep === 1 && (
-            <AgendaScheduleForm 
-              data={eventData}
+            <EventDetailsPreview
               onUpdate={updateEventData}
               onNext={handleNext}
               onBack={handleBack}
@@ -112,42 +112,23 @@ export default function EventCreationWizard() {
           )}
 
           {currentStep === 2 && (
-            <div className="text-center py-12">
-              <h2 className="text-xl font-semibold mb-4">Tickets Configuration</h2>
-              <p className="text-gray-600 mb-8">Event tickets and pricing.</p>
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={handleBack}
-                  className="px-6 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={handleNext}
-                  className="px-6 py-2 bg-[#092C4C] text-white rounded-lg font-medium hover:bg-[#092C4C]"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+            <TicketsForm 
+              data={eventData}
+              onUpdate={updateEventData}
+              onNext={handleNext}
+              onBack={handleBack}
+            />
           )}
 
           {currentStep === 3 && (
-            <div className="text-center py-12">
-              <h2 className="text-xl font-semibold mb-4">Preview Your Event</h2>
-              <p className="text-gray-600 mb-8">Review your event details before publishing.</p>
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={handleBack}
-                  className="px-6 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Back
-                </button>
-                <button className="px-6 py-2 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600">
-                  Publish Event
-                </button>
-              </div>
-            </div>
+            <EventPreview 
+              data={eventData}
+              onBack={handleBack}
+              onPublish={() => {
+                console.log('Publishing event:', eventData);
+                // Handle event publishing logic here
+              }}
+            />
           )}
         </div>
       </div>
