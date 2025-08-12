@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
-import { CalendarDays, Clock, MapPin, FileText } from "lucide-react";
+import React, { useRef, useState, useEffect } from "react";
+import { CalendarDays, Clock, MapPin, FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { EventData } from "./EventDetailsForm";
 
@@ -11,9 +11,16 @@ interface EventPreviewProps {
 }
 
 export default function EventPreview({ onUpdate, onNext }: EventPreviewProps) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+ 
+
   const [dragActive, setDragActive] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [eventData, setEventData] = useState<EventData | null>(null);
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [readyToUpload, setReadyToUpload] = useState(false);
 
   useEffect(() => {
     const storedData = localStorage.getItem("eventData");
@@ -21,6 +28,16 @@ export default function EventPreview({ onUpdate, onNext }: EventPreviewProps) {
       setEventData(JSON.parse(storedData));
     }
   }, []);
+
+  const openFilePicker = () => 
+     <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                    
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -33,26 +50,48 @@ export default function EventPreview({ onUpdate, onNext }: EventPreviewProps) {
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files?.[0]) {
-      const file = e.dataTransfer.files[0];
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (ev) => setImagePreview(ev.target?.result as string);
-        reader.readAsDataURL(file);
-        onUpdate({ image: file });
-      }
+      startFileSelection(e.dataTransfer.files[0]);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
-      const file = e.target.files[0];
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (ev) => setImagePreview(ev.target?.result as string);
-        reader.readAsDataURL(file);
-        onUpdate({ image: file });
-      }
+      startFileSelection(e.target.files[0]);
     }
+  };
+
+  const startFileSelection = (file: File) => {
+    if (file.type.startsWith("image/")) {
+      setSelectedFile(file);
+      setUploadProgress(0);
+      setReadyToUpload(false);
+
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 20;
+        if (progress >= 100) {
+          setUploadProgress(100);
+          setReadyToUpload(true);
+          clearInterval(interval);
+        } else {
+          setUploadProgress(progress);
+        }
+      }, 200);
+    }
+  };
+
+  const handleUpload = () => {
+    if (!selectedFile) return;
+
+    const reader = new FileReader();
+    reader.onloadend = (ev) => {
+      setImagePreview(ev.target?.result as string);
+      onUpdate({ image: selectedFile });
+      setSelectedFile(null);
+      setUploadProgress(0);
+      setReadyToUpload(false);
+    };
+    reader.readAsDataURL(selectedFile);
   };
 
   if (!eventData) {
@@ -64,17 +103,16 @@ export default function EventPreview({ onUpdate, onNext }: EventPreviewProps) {
       {/* Header */}
       <div>
         <h2 className="text-lg font-bold text-[#092C4C]">Event Cover</h2>
-        <p className="text-sm text-gray-500">
-          Upload a JPEG or PNG file
-        </p>
+        <p className="text-sm text-gray-500">Upload a JPEG or PNG file</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-2 gap-8">
-        {/* Left - Event Info */}
+      <div className="grid grid-cols-2 gap-8">
+        {/* Left */}
         <div className="space-y-4 bg-[#F4F3F3] p-6 rounded-lg">
-          <h3 className="text-xl font-semibold text-[#08080E]">{eventData.name}</h3>
-
-          <div className="flex items-center  text-gray-600">
+          <h3 className="text-xl font-semibold text-[#08080E]">
+            {eventData.name}
+          </h3>
+          <div className="flex items-center text-gray-600">
             <CalendarDays className="w-6 h-6 mr-2 text-[#E04E1E]" />
             <span>
               {new Date(eventData.startDate).toLocaleDateString(undefined, {
@@ -85,23 +123,26 @@ export default function EventPreview({ onUpdate, onNext }: EventPreviewProps) {
               })}
             </span>
           </div>
-
           <div className="flex items-center text-gray-600">
             <Clock className="w-6 h-6 mr-2 text-[#E04E1E]" />
             <span>
-              {new Date(eventData.startDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{" "}
+              {new Date(eventData.startDate).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}{" "}
               -{" "}
-              {new Date(eventData.endDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} PST
+              {new Date(eventData.endDate).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </span>
           </div>
-
           <div className="flex items-center text-gray-600">
             <MapPin className="w-6 h-6 mr-2 text-[#E04E1E]" />
             <span>{eventData.location}</span>
           </div>
-
           <div>
-            <h4 className="font-bold mt-6 text-relaxed">About Event</h4>
+            <h4 className="font-bold mt-6">About Event</h4>
             <p className="text-gray-600">{eventData.description}</p>
           </div>
         </div>
@@ -112,45 +153,83 @@ export default function EventPreview({ onUpdate, onNext }: EventPreviewProps) {
             Images with a 1:1 ratio (a square) work best on all event themes
           </div>
 
-          <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300"
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            {imagePreview ? (
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-32 h-32 object-cover rounded-lg mx-auto"
-              />
-            ) : (
-              <div className="space-y-2">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto" />
-                <p className="text-sm text-gray-600">Drag n Drop here</p>
-                <p className="text-xs text-gray-400">Or</p>
-                <label className="text-sm text-[#092C4C] cursor-pointer hover:underline">
-                  Browse
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-            )}
+          <div className="border border-[#BDBDBD] rounded-lg p-6 mb-4">
+            
+            <p className="text-[#092C4C] font-semibold mb-4">Upload File</p>
+
+            {/* Upload Area */}
+            <div
+              className={`border-2 border-dashed rounded-lg p-4 text-center relative min-h-[150px] flex items-center justify-center ${
+                dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300"
+              }`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
+              
+                <div>
+                  <FileText className="w-12 h-12 text-gray-400 mx-auto" />
+                  <p className="text-sm text-gray-600">Drag n Drop here</p>
+                  <p className="text-xs text-gray-400">Or</p>
+                  <label className="text-sm text-[#092C4C] cursor-pointer hover:underline">
+                    Browse
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              
+            </div>
           </div>
 
-          <Button
-            className="w-full py-6 bg-[#BDBDBD] mt-5"
-            disabled
-          >
-            Upload Now
-          </Button>
+          {imagePreview ? (
+            <div className="flex gap-3 mt-5">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+
+              <Button
+                onClick={() => {
+                  openFilePicker();
+                  setDragActive(false);
+                  setImagePreview(null);
+                  onUpdate({ image: null });
+                }}
+                
+              
+                className="flex-1 text-sm py-6 bg-[#BDBDBD] font-semibold text-white"
+              >
+                Change Image
+              </Button>
+              <div
+                className="flex items-center justify-center p-3 bg-[#FCE8E8] rounded-lg cursor-pointer"
+                onClick={() => {
+                  setImagePreview(null);
+                  onUpdate({ image: null });
+                }}
+              >
+                <Trash2 className="text-2xl text-[#EB5757]" />
+              </div>
+            </div>
+          ) : (
+            readyToUpload && (
+              <Button
+                onClick={handleUpload}
+                className="w-full text-sm py-6 font-semibold text-white mt-5 bg-[#E86A33] hover:bg-[#d75d28]"
+              >
+                Upload Now
+              </Button>
+            )
+          )}
         </div>
       </div>
 

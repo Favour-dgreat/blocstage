@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from 'react';
-import { Plus, Trash2, Ticket } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,9 +18,9 @@ interface TicketType {
   amount: string;
   benefits: string;
   isTransferable: boolean;
+  isFree: boolean; // Optional field for free tickets
   isResellable: boolean;
-  isNFT: boolean;
-   availableTickets?: string; 
+  availableTickets?: string;
 }
 
 interface TicketsFormProps {
@@ -35,21 +35,31 @@ export default function TicketsForm({ data, onUpdate, onNext, onBack }: TicketsF
     data.tickets?.length > 0 ? data.tickets : []
   );
 
+  const createEmptyTicket = (): TicketType => ({
+    id: Date.now().toString(),
+    name: '',
+    type: '',
+    quantity: '',
+    purchaseLimit: '5',
+    currency: 'Naira',
+    amount: '',
+    benefits: '',
+    isTransferable: false,
+    isResellable: false,
+    isFree: false, 
+    availableTickets: ''
+  });
+
+  useEffect(() => {
+    if (tickets.length === 0) {
+      const initialTicket = createEmptyTicket();
+      setTickets([initialTicket]);
+      onUpdate({ tickets: [initialTicket] });
+    }
+  }, []);
+
   const addNewTicket = () => {
-    const newTicket: TicketType = {
-      id: Date.now().toString(),
-      name: '',
-      type: '',
-      quantity: '',
-      purchaseLimit: '5',
-      currency: 'Naira',
-      amount: '',
-      benefits: '',
-      isTransferable: false,
-      isResellable: false,
-      isNFT: false,
-      availableTickets: ''
-    };
+    const newTicket = createEmptyTicket();
     const updatedTickets = [...tickets, newTicket];
     setTickets(updatedTickets);
     onUpdate({ tickets: updatedTickets });
@@ -70,7 +80,6 @@ export default function TicketsForm({ data, onUpdate, onNext, onBack }: TicketsF
   };
 
   const addBenefit = (ticketId: string) => {
-    // This would typically open a modal or expand the benefits section
     console.log('Add benefit for ticket:', ticketId);
   };
 
@@ -83,247 +92,282 @@ export default function TicketsForm({ data, onUpdate, onNext, onBack }: TicketsF
           <p className="text-gray-600">Set up ticket type for the event</p>
         </div>
 
-        <div className="space-y-6">
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Tickets</h3>
-            
-            {tickets.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Ticket className="w-8 h-8 text-gray-400" />
-                </div>
-                <p className="text-gray-500 mb-4">No Tickets Yet</p>
-                <Button onClick={addNewTicket} className="bg-blue-900 hover:bg-blue-800">
-                  Add Ticket
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {tickets.map((ticket) => (
-                  <div key={ticket.id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Ticket Name
-                        </label>
-                        <Input
-                          value={ticket.name}
-                          onChange={(e) => updateTicket(ticket.id, 'name', e.target.value)}
-                          placeholder="e.g Regular"
-                        />
-                      </div>
+    <div className="space-y-6">
+  <div className="bg-white p-6">
+    <h3 className="text-lg font-medium text-[#282828] mb-6">Tickets</h3>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Ticket Type
-                        </label>
-                        <Select
-                          value={ticket.type}
-                          onValueChange={(value) => updateTicket(ticket.id, 'type', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select option" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="regular">Regular</SelectItem>
-                            <SelectItem value="vip">VIP</SelectItem>
-                            <SelectItem value="early-bird">Early Bird</SelectItem>
-                            <SelectItem value="student">Student</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+    <div className="space-y-6">
+      {tickets.map((ticket) => (
+        <div key={ticket.id}>
+          {/* Ticket Name & Type */}
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
+            <div className="relative z-10">
+              <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+                Ticket Name
+              </label>
+              <Input
+                value={ticket.name}
+                onChange={(e) => updateTicket(ticket.id, "name", e.target.value)}
+                className="rounded-sm"
+                placeholder="e.g Regular"
+              />
+            </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Quantity
-                        </label>
-                        <Select
-                          value={ticket.quantity}
-                          onValueChange={(value) => updateTicket(ticket.id, 'quantity', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select option" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="unlimited">Unlimited</SelectItem>
-                            <SelectItem value="limited">Limited</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+            <div className="relative z-10">
+              <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+                Ticket Type
+              </label>
+              <Select
+                value={ticket.type}
+                onValueChange={(value) =>
+                  updateTicket(ticket.id, "type", value)
+                }
+              >
+                <SelectTrigger className="rounded-sm">
+                  <SelectValue placeholder="Select option" />
+                </SelectTrigger>
+                <SelectContent position="popper" className="z-50">
+                  <SelectItem value="regular">Regular</SelectItem>
+                  <SelectItem value="vip">VIP</SelectItem>
+                  <SelectItem value="early-bird">Early Bird</SelectItem>
+                  <SelectItem value="student">Student</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Purchase Limit
-                        </label>
-                        <Select
-                          value={ticket.purchaseLimit}
-                          onValueChange={(value) => updateTicket(ticket.id, 'purchaseLimit', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">1</SelectItem>
-                            <SelectItem value="2">2</SelectItem>
-                            <SelectItem value="5">5</SelectItem>
-                            <SelectItem value="10">10</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+          {/* Quantity & Purchase Limit */}
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
+            <div className="relative z-10">
+              <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+                Quantity
+              </label>
+              <Select
+                value={ticket.quantity}
+                onValueChange={(value) =>
+                  updateTicket(ticket.id, "quantity", value)
+                }
+              >
+                <SelectTrigger className="rounded-sm">
+                  <SelectValue placeholder="Select option" />
+                </SelectTrigger>
+                <SelectContent position="popper" className="z-50">
+                  <SelectItem value="unlimited">Unlimited</SelectItem>
+                  <SelectItem value="limited">Limited</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-                      {ticket.quantity === 'limited' && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Available Tickets
-                          </label>
-                          <Input
-                            type="number"
-                            placeholder="400"
-                            onChange={(e) => updateTicket(ticket.id, 'availableTickets', e.target.value)}
-                          />
-                        </div>
-                      )}
-                    </div>
+            <div className="relative z-10">
+              <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+                Purchase Limit
+              </label>
+              <Select
+                value={ticket.purchaseLimit}
+                onValueChange={(value) =>
+                  updateTicket(ticket.id, "purchaseLimit", value)
+                }
+              >
+                <SelectTrigger className="rounded-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent position="popper" className="z-50">
+                  <SelectItem value="1">1</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Payment Currency
-                        </label>
-                        <Select
-                          value={ticket.currency}
-                          onValueChange={(value) => updateTicket(ticket.id, 'currency', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Naira">Naira</SelectItem>
-                            <SelectItem value="USD">USD</SelectItem>
-                            <SelectItem value="EUR">EUR</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Amount
-                        </label>
-                        <Input
-                          type="number"
-                          value={ticket.amount}
-                          onChange={(e) => updateTicket(ticket.id, 'amount', e.target.value)}
-                          placeholder="4,000"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                          Benefits
-                        </label>
-                        <button
-                          onClick={() => addBenefit(ticket.id)}
-                          className="text-sm text-orange-500 hover:text-orange-600"
-                        >
-                          + Add Benefit
-                        </button>
-                      </div>
-                      <Textarea
-                        value={ticket.benefits}
-                        onChange={(e) => updateTicket(ticket.id, 'benefits', e.target.value)}
-                        placeholder="e.g Free drinks"
-                        rows={2}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={ticket.isNFT}
-                            onCheckedChange={(checked) => updateTicket(ticket.id, 'isNFT', checked)}
-                          />
-                          <span className="text-sm text-gray-700">NFT</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={ticket.isTransferable}
-                            onCheckedChange={(checked) => updateTicket(ticket.id, 'isTransferable', checked)}
-                          />
-                          <span className="text-sm text-gray-700">Transfer Ticket</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={ticket.isResellable}
-                            onCheckedChange={(checked) => updateTicket(ticket.id, 'isResellable', checked)}
-                          />
-                          <span className="text-sm text-gray-700">Resell Ticket</span>
-                        </div>
-                      </div>
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeTicket(ticket.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-
-                    <Button
-                      className="w-full bg-blue-900 hover:bg-blue-800"
-                      onClick={addNewTicket}
-                    >
-                      Add Ticket
-                    </Button>
-                  </div>
-                ))}
+            {ticket.quantity === "limited" && (
+              <div className="relative z-10">
+                <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+                  Available Tickets
+                </label>
+                <Input
+                  type="number"
+                  placeholder="400"
+                  value={ticket.availableTickets}
+                  onChange={(e) =>
+                    updateTicket(ticket.id, "availableTickets", e.target.value)
+                  }
+                />
               </div>
             )}
           </div>
+
+          {/* Currency & Amount */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="relative z-10">
+              <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+                Payment Currency
+              </label>
+              <Select
+                value={ticket.currency}
+                onValueChange={(value) =>
+                  updateTicket(ticket.id, "currency", value)
+                }
+              >
+                <SelectTrigger className="rounded-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent position="popper" className="z-50">
+                  <SelectItem value="Naira">Naira</SelectItem>
+                  <SelectItem value="USD">USD</SelectItem>
+                  <SelectItem value="EUR">EUR</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="relative z-10">
+              <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+                Amount
+              </label>
+              <Input
+                type="number"
+                value={ticket.amount}
+                onChange={(e) =>
+                  updateTicket(ticket.id, "amount", e.target.value)
+                }
+                placeholder="4,000"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-700">Free Event</span>
+                <Switch
+                  checked={ticket.isFree}
+                  onCheckedChange={(checked) =>
+                    updateTicket(ticket.id, "isFree", checked)
+                  }
+                  className={
+                    ticket.isFree
+                      ? "bg-[#F56630] text-white hover:bg-[#F56630]"
+                      : "bg-[#E4E7EC] text-gray-600 border-gray-300 hover:bg-gray-100"
+                  }
+                />
+                
+              </div>
+          </div>
+
+          {/* Benefits */}
+          <div className="mb-4 relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <label className="block text-sm font-medium text-[#BDBDBD]">
+                Benefits
+              </label>
+             
+            </div>
+            
+            <Input
+              type="text"
+              value={ticket.benefits}
+              onChange={(e) =>
+                updateTicket(ticket.id, "benefits", e.target.value)
+              }
+              className="rounded-sm"
+              placeholder="e.g Free drinks"
+              
+            />
+             <button
+                type="button"
+                onClick={() => addBenefit(ticket.id)}
+                className="text-sm text-orange-500 hover:text-orange-600"
+              >
+                + Add Benefit
+              </button>
+            
+          </div>
+
+          {/* Switches & Delete */}
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <div className="flex items-center gap-6">
+              
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-700">Transfer Ticket</span>
+                <Switch
+                  checked={ticket.isTransferable}
+                  onCheckedChange={(checked) =>
+                    updateTicket(ticket.id, "isTransferable", checked)
+                  }
+                  className={
+                    ticket.isTransferable
+                      ? "bg-[#F56630] text-white hover:bg-[#F56630]"
+                      : "bg-[#E4E7EC] text-gray-600 border-gray-300 hover:bg-gray-100"
+                  }
+                />
+                
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-700">Resell Ticket</span>
+                <Switch
+                  checked={ticket.isResellable}
+                  onCheckedChange={(checked) =>
+                    updateTicket(ticket.id, "isResellable", checked)
+                  }
+                  className={
+                    ticket.isResellable
+                      ? "bg-[#F56630] text-white hover:bg-[#F56630]"
+                      : "bg-[#E4E7EC] text-gray-600 border-gray-300 hover:bg-gray-100"
+                  }
+                />
+                
+              </div>
+            </div>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => removeTicket(ticket.id)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
+      ))}
+
+      <Button
+        className="w-full bg-[#092C4C] hover:bg-[#092C4C] text-white"
+        onClick={addNewTicket}
+      >
+        Add  Ticket
+      </Button>
+    </div>
+  </div>
+</div>
+
+
       </div>
 
       {/* Right Column - Ticket List */}
       <div>
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Ticket List</h3>
-          
-          {tickets.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Ticket className="w-8 h-8 text-gray-400" />
-              </div>
-              <p className="text-gray-500 mb-4">No Tickets Yet</p>
-            </div>
-          ) : (
-            <div className="space-y-4 mb-6">
-              {tickets.map((ticket) => (
-                <div key={ticket.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium text-gray-900">{ticket.name || 'Regular'}</h4>
-                    <span className="text-sm text-orange-500">
-                      {ticket.benefits ? ticket.benefits.split(',').length : 0} Benefits
-                    </span>
-                  </div>
-                  <p className="text-lg font-semibold text-gray-900 mb-1">
-                    {ticket.currency === 'Naira' ? 'NGN' : ticket.currency} {ticket.amount || '5000'}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {ticket.quantity === 'unlimited' ? 'Unlimited' : `${ticket.availableTickets || '100'} Tickets`}
-                  </p>
+          <div className="space-y-4 mb-6">
+            {tickets.map((ticket) => (
+              <div key={ticket.id} className="">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-medium text-gray-900">{ticket.name || 'Regular'}</h4>
+                  <span className="text-sm text-[#E04E1E] bg-[#FBEAE4] p-1 rounded">
+                    {ticket.benefits ? ticket.benefits.split(',').length : 0} Benefits
+                  </span>
                 </div>
-              ))}
-            </div>
-          )}
 
+                <div className="flex justify-between items-center gap-6 mb-2">
+                <p className="text-sm font-semibold text-[#4F4F4F] mb-1">
+                  {ticket.currency === 'Naira' ? 'NGN' : ticket.currency} {ticket.amount || '5000'}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {ticket.quantity === 'unlimited' ? 'Unlimited' : `${ticket.availableTickets || '100'} Tickets`}
+                </p>
+                </div>
+              </div>
+            ))}
+          </div>
+         
           <Button
-            className="w-full bg-blue-900 hover:bg-blue-800 mb-4"
+            className="w-full bg-[#092C4C] text-white hover:bg-[#092C4C] mb-4"
             disabled={tickets.length === 0}
           >
             Preview Website
@@ -342,7 +386,7 @@ export default function TicketsForm({ data, onUpdate, onNext, onBack }: TicketsF
         </Button>
         <Button
           onClick={onNext}
-          className="px-8 py-2 bg-blue-900 text-white hover:bg-blue-800"
+          className="px-8 py-2 bg-[#092C4C] text-white hover:bg-[#092C4C]"
         >
           Next
         </Button>

@@ -62,10 +62,11 @@ export default function EventCreationWizard() {
         <div className="flex items-center justify-between max-w-4xl">
           {steps.map((step, index) => (
             <div key={step.id} className="flex items-center flex-1">
-              <div className="flex items-center">
+              <div className="flex flex-col items-center">
+                {/* {step.title} */}
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
                   index <= currentStep 
-                    ? 'bg-blue-900 border-blue-900 text-white' 
+                    ? 'bg-[#092C4C] border-[#092C4C] text-white' 
                     : 'border-gray-300 text-gray-400'
                 }`}>
                   {index < currentStep ? (
@@ -74,15 +75,15 @@ export default function EventCreationWizard() {
                     <span className="text-sm font-medium">{index + 1}</span>
                   )}
                 </div>
-                <span className={`ml-3 text-sm font-medium ${
-                  index <= currentStep ? 'text-blue-900' : 'text-gray-400'
+                <span className={`ml-2 text-sm font-medium ${
+                  index <= currentStep ? 'text-[#092C4C]' : 'text-gray-400'
                 }`}>
-                  {/* {step.title} */}
+
                 </span>
               </div>
               {index < steps.length - 1 && (
-                <div className={`flex-1 h-0.5 mx-4 ${
-                  index < currentStep ? 'bg-blue-900' : 'bg-gray-200'
+                <div className={`flex-[4]  h-1.5   ${
+                  index < currentStep ? 'bg-[#092C4C]' : 'bg-gray-200'
                 }`} />
               )}
             </div>
@@ -112,6 +113,14 @@ export default function EventCreationWizard() {
           )}
 
           {currentStep === 2 && (
+            <AgendaScheduleForm 
+            data={eventData}
+            onUpdate={updateEventData}
+            onBack={handleBack}
+            onNext={handleNext}
+            />
+          )}
+          {currentStep === 3 && (
             <TicketsForm 
               data={eventData}
               onUpdate={updateEventData}
@@ -120,13 +129,18 @@ export default function EventCreationWizard() {
             />
           )}
 
-          {currentStep === 3 && (
+          {currentStep === 4 && (
             <EventPreview 
               data={eventData}
               onBack={handleBack}
               onPublish={() => {
                 console.log('Publishing event:', eventData);
                 // Handle event publishing logic here
+                alert('Event published successfully!');
+
+
+                setCurrentStep(0); 
+               
               }}
             />
           )}
