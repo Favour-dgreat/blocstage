@@ -1,18 +1,17 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
-import { CalendarDays, Clock, MapPin, FileText, Trash2 } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Trash2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { EventData } from "./EventDetailsForm";
 
 interface EventPreviewProps {
   onUpdate: (data: Partial<EventData>) => void;
   onNext: () => void;
-  onBack?: () => void;
+  onBack: () => void;
 }
 
-export default function EventPreview({ onUpdate, onNext }: EventPreviewProps) {
+export default function EventPreview({ onBack, onUpdate, onNext }: EventPreviewProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
- 
 
   const [dragActive, setDragActive] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -20,7 +19,7 @@ export default function EventPreview({ onUpdate, onNext }: EventPreviewProps) {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [readyToUpload, setReadyToUpload] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const storedData = localStorage.getItem("eventData");
@@ -28,16 +27,6 @@ export default function EventPreview({ onUpdate, onNext }: EventPreviewProps) {
       setEventData(JSON.parse(storedData));
     }
   }, []);
-
-  const openFilePicker = () => 
-     <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                    
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -63,35 +52,29 @@ export default function EventPreview({ onUpdate, onNext }: EventPreviewProps) {
   const startFileSelection = (file: File) => {
     if (file.type.startsWith("image/")) {
       setSelectedFile(file);
+      setUploading(true);
       setUploadProgress(0);
-      setReadyToUpload(false);
 
       let progress = 0;
       const interval = setInterval(() => {
         progress += 20;
         if (progress >= 100) {
-          setUploadProgress(100);
-          setReadyToUpload(true);
           clearInterval(interval);
+          setUploadProgress(100);
+
+          const reader = new FileReader();
+          reader.onloadend = (ev) => {
+            setImagePreview(ev.target?.result as string);
+            onUpdate({ image: file });
+            setUploading(false);
+            setSelectedFile(null);
+          };
+          reader.readAsDataURL(file);
         } else {
           setUploadProgress(progress);
         }
-      }, 200);
+      }, 300);
     }
-  };
-
-  const handleUpload = () => {
-    if (!selectedFile) return;
-
-    const reader = new FileReader();
-    reader.onloadend = (ev) => {
-      setImagePreview(ev.target?.result as string);
-      onUpdate({ image: selectedFile });
-      setSelectedFile(null);
-      setUploadProgress(0);
-      setReadyToUpload(false);
-    };
-    reader.readAsDataURL(selectedFile);
   };
 
   if (!eventData) {
@@ -107,11 +90,9 @@ export default function EventPreview({ onUpdate, onNext }: EventPreviewProps) {
       </div>
 
       <div className="grid grid-cols-2 gap-8">
-        {/* Left */}
+        {/* Left Preview */}
         <div className="space-y-4 bg-[#F4F3F3] p-6 rounded-lg">
-          <h3 className="text-xl font-semibold text-[#08080E]">
-            {eventData.name}
-          </h3>
+          <h3 className="text-xl font-semibold text-[#08080E]">{eventData.name}</h3>
           <div className="flex items-center text-gray-600">
             <CalendarDays className="w-6 h-6 mr-2 text-[#E04E1E]" />
             <span>
@@ -147,48 +128,51 @@ export default function EventPreview({ onUpdate, onNext }: EventPreviewProps) {
           </div>
         </div>
 
-        {/* Right - Upload */}
+        {/* Right Upload Area */}
         <div>
           <div className="bg-[#FCF7ED] border border-[#E2A83B] text-[#E2A83B] p-4 rounded-md text-sm mb-4">
             Images with a 1:1 ratio (a square) work best on all event themes
           </div>
 
-          <div className="border border-[#BDBDBD] rounded-lg p-6 mb-4">
-            
-            <p className="text-[#092C4C] font-semibold mb-4">Upload File</p>
-
-            {/* Upload Area */}
-            <div
-              className={`border-2 border-dashed rounded-lg p-4 text-center relative min-h-[150px] flex items-center justify-center ${
-                dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300"
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              
-                <div>
-                  <FileText className="w-12 h-12 text-gray-400 mx-auto" />
-                  <p className="text-sm text-gray-600">Drag n Drop here</p>
-                  <p className="text-xs text-gray-400">Or</p>
-                  <label className="text-sm text-[#092C4C] cursor-pointer hover:underline">
-                    Browse
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                  </label>
+          {/* Upload States */}
+          {uploading ? (
+            <div className="border border-[#BDBDBD] rounded-lg p-6 text-center">
+              <p className="text-[#092C4C] font-semibold mb-4">Upload File</p>
+              <div className="border border-dashed border-gray-300 rounded-lg p-6">
+                <p className="text-sm text-gray-700 mb-2">{selectedFile?.name}</p>
+                <div className="w-full bg-gray-200 h-3 rounded-lg overflow-hidden">
+                  <div
+                    className="bg-[#092C4C] h-3"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
                 </div>
-              
+                <p className="mt-2 text-sm text-gray-600">{uploadProgress}%</p>
+              </div>
             </div>
-          </div>
-
-          {imagePreview ? (
-            <div className="flex gap-3 mt-5">
+          ) : imagePreview ? (
+            <div>
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full h-64 object-cover rounded-lg mb-4"
+              />
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 text-sm py-6 bg-[#BDBDBD] font-semibold text-white"
+                >
+                  Change Image
+                </Button>
+                <div
+                  className="flex items-center justify-center p-3 bg-[#FCE8E8] rounded-lg cursor-pointer"
+                  onClick={() => {
+                    setImagePreview(null);
+                    onUpdate({ image: null });
+                  }}
+                >
+                  <Trash2 className="text-2xl text-[#EB5757]" />
+                </div>
+              </div>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -196,45 +180,40 @@ export default function EventPreview({ onUpdate, onNext }: EventPreviewProps) {
                 onChange={handleFileChange}
                 className="hidden"
               />
-
-              <Button
-                onClick={() => {
-                  openFilePicker();
-                  setDragActive(false);
-                  setImagePreview(null);
-                  onUpdate({ image: null });
-                }}
-                
-              
-                className="flex-1 text-sm py-6 bg-[#BDBDBD] font-semibold text-white"
-              >
-                Change Image
-              </Button>
-              <div
-                className="flex items-center justify-center p-3 bg-[#FCE8E8] rounded-lg cursor-pointer"
-                onClick={() => {
-                  setImagePreview(null);
-                  onUpdate({ image: null });
-                }}
-              >
-                <Trash2 className="text-2xl text-[#EB5757]" />
-              </div>
             </div>
           ) : (
-            readyToUpload && (
-              <Button
-                onClick={handleUpload}
-                className="w-full text-sm py-6 font-semibold text-white mt-5 bg-[#E86A33] hover:bg-[#d75d28]"
-              >
-                Upload Now
-              </Button>
-            )
+            <div
+              className={`border-2 border-dashed rounded-lg p-6 text-center ${
+                dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300"
+              }`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
+              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-600">Drag & Drop here</p>
+              <p className="text-xs text-gray-400">Or</p>
+              <label className="text-sm text-[#092C4C] cursor-pointer hover:underline">
+                Browse
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Next Button */}
-      <div className="flex justify-end">
+      {/* Navigation */}
+      <div className="flex justify-between mt-8">
+        <Button variant="outline" onClick={onBack} className="px-6 py-2">
+          Back
+        </Button>
         <Button
           onClick={onNext}
           className="px-6 py-6 bg-[#092C4C] text-white rounded-lg font-medium hover:bg-[#0b3a63]"

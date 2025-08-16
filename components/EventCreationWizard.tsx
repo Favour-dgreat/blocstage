@@ -1,33 +1,34 @@
 "use client";
 
-import { useState } from 'react';
-import { Check } from 'lucide-react';
-import EventDetailsForm from './EventDetailsForm';
-import EventDetailsPreview from './EventDetailsPreview';
+import { useState } from "react";
+import { Check } from "lucide-react";
+import EventDetailsForm from "./EventDetailsForm";
+import EventDetailsPreview from "./EventDetailsPreview";
 
-import AgendaScheduleForm from './AgendaScheduleForm';
-import TicketsForm from './TicketsForm';
-import EventPreview from './EventPreview';
+import AgendaScheduleForm from "./AgendaScheduleForm";
+import TicketsForm from "./TicketsForm";
+import EventPreview from "./EventPreview";
 
 const steps = [
-  { id: 'details', title: 'Event Details', completed: false },
-  { id: 'agenda', title: 'Agenda & Schedule', completed: false },
-  { id: 'tickets', title: 'Tickets', completed: false },
-  { id: 'preview', title: 'Preview', completed: false },
+  { id: "details", title: "Event Details", completed: false },
+  { id: "agenda", title: "Agenda & Schedule", completed: false },
+  { id: "tickets", title: "Tickets", completed: false },
+  { id: "preview", title: "Preview", completed: false },
+  { id: "finalpreview", title: "FinalPreview", completed: false },
 ];
 
 export default function EventCreationWizard() {
   const [currentStep, setCurrentStep] = useState(0);
   const [eventData, setEventData] = useState({
-    name: '',
-    location: '',
-    description: '',
-    startDate: '',
-    endDate: '',
+    name: "",
+    location: "",
+    description: "",
+    startDate: "",
+    endDate: "",
     image: null,
     isOnline: false,
     sessions: [],
-    tickets: []
+    tickets: [],
   });
 
   const handleNext = () => {
@@ -43,7 +44,7 @@ export default function EventCreationWizard() {
   };
 
   const updateEventData = (data: any) => {
-    setEventData(prev => ({ ...prev, ...data }));
+    setEventData((prev) => ({ ...prev, ...data }));
   };
 
   return (
@@ -59,32 +60,36 @@ export default function EventCreationWizard() {
 
       {/* Progress Steps */}
       <div className="mb-12">
-        <div className="flex items-center justify-between max-w-4xl">
+        <div className="flex items-center justify-between ">
           {steps.map((step, index) => (
-            <div key={step.id} className="flex items-center flex-1">
+            <div key={step.id} className="flex items-center  flex-1">
               <div className="flex flex-col items-center">
                 {/* {step.title} */}
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                  index <= currentStep 
-                    ? 'bg-[#092C4C] border-[#092C4C] text-white' 
-                    : 'border-gray-300 text-gray-400'
-                }`}>
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
+                    index <= currentStep
+                      ? "bg-[#092C4C] border-[#092C4C] text-white"
+                      : "border-gray-300 text-gray-400"
+                  }`}
+                >
                   {index < currentStep ? (
                     <Check className="w-4 h-4" />
                   ) : (
                     <span className="text-sm font-medium">{index + 1}</span>
                   )}
                 </div>
-                <span className={`ml-2 text-sm font-medium ${
-                  index <= currentStep ? 'text-[#092C4C]' : 'text-gray-400'
-                }`}>
-
-                </span>
+                <span
+                  className={`ml-2 text-sm font-medium ${
+                    index <= currentStep ? "text-[#092C4C]" : "text-gray-400"
+                  }`}
+                ></span>
               </div>
               {index < steps.length - 1 && (
-                <div className={`flex-[4]  h-1.5   ${
-                  index < currentStep ? 'bg-[#092C4C]' : 'bg-gray-200'
-                }`} />
+                <div
+                  className={`flex-1  h-1.5   ${
+                    index < currentStep ? "bg-[#092C4C]" : "bg-gray-200"
+                  }`}
+                />
               )}
             </div>
           ))}
@@ -94,10 +99,8 @@ export default function EventCreationWizard() {
       {/* Content */}
       <div className="bg-white rounded-lg">
         <div className="p-8">
-          
-
           {currentStep === 0 && (
-            <EventDetailsForm 
+            <EventDetailsForm
               data={eventData}
               onUpdate={updateEventData}
               onNext={handleNext}
@@ -106,22 +109,23 @@ export default function EventCreationWizard() {
 
           {currentStep === 1 && (
             <EventDetailsPreview
+              
+              onBack={handleBack}
               onUpdate={updateEventData}
               onNext={handleNext}
-              onBack={handleBack}
             />
           )}
 
           {currentStep === 2 && (
-            <AgendaScheduleForm 
-            data={eventData}
-            onUpdate={updateEventData}
-            onBack={handleBack}
-            onNext={handleNext}
+            <AgendaScheduleForm
+              data={eventData}
+              onUpdate={updateEventData}
+              onBack={handleBack}
+              onNext={handleNext}
             />
           )}
           {currentStep === 3 && (
-            <TicketsForm 
+            <TicketsForm
               data={eventData}
               onUpdate={updateEventData}
               onNext={handleNext}
@@ -130,20 +134,21 @@ export default function EventCreationWizard() {
           )}
 
           {currentStep === 4 && (
-            <EventPreview 
+            <EventPreview
               data={eventData}
               onBack={handleBack}
               onPublish={() => {
-                console.log('Publishing event:', eventData);
+                console.log("Publishing event:", eventData);
                 // Handle event publishing logic here
-                alert('Event published successfully!');
+                alert("Event published successfully!");
 
-
-                setCurrentStep(0); 
-               
+                setCurrentStep(0);
               }}
             />
+            
           )}
+         
+         
         </div>
       </div>
     </div>

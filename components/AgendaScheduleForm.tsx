@@ -78,13 +78,18 @@ export default function AgendaScheduleForm({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">
-        Agenda & Schedule
+      <h2 className="text-xl font-semibold text-[#092C4C] mb-2">
+        Agenda 
       </h2>
+      <p className="text-sm text-[#4F4F4F] mb-8">Set up your agenda of the day</p>
 
-      <div className="space-y-6 flex flex-col gap-4">
+      <div className="space-y-6 flex flex-col gap-4 ">
         {sessions.map((session, index) => (
-          <div key={session.id} className="bg-gray-50 rounded-lg p-6">
+          <div key={session.id} className="rounded-lg ">
+            <h2 className="text-sm font-light text-[#121111] mb-6">
+              Agenda & Schedule
+            </h2>
+
             <div className="grid grid-cols-3 lg:grid-cols-3 gap-4 mb-4">
               {/* Title */}
               <div>
@@ -130,14 +135,13 @@ export default function AgendaScheduleForm({
                 </label>
                 <div className="relative">
                   <Input
-                   type="text"
+                    type="text"
                     placeholder="Pick time"
-                      onFocus={(e) => (e.target.type = "time")}
+                    onFocus={(e) => (e.target.type = "time")}
                     value={session.endTime}
                     onChange={(e) =>
                       updateSession(session.id, "endTime", e.target.value)
                     }
-                   
                     className="w-full"
                   />
                 </div>

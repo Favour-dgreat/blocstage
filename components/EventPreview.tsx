@@ -46,7 +46,7 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
           </Button>
           <Button 
             onClick={onPublish}
-            className="px-6 bg-blue-900 hover:bg-blue-800"
+            className="px-6 bg-[#092C4C] text-white hover:bg-[#092C4C]"
           >
             Publish
           </Button>
@@ -119,7 +119,7 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
 
           {/* Get Tickets Button */}
           <div className="mb-8">
-            <Button className="bg-blue-900 hover:bg-blue-800 px-8 py-3 text-lg">
+            <Button className="bg-[#092C4C] hover:bg-[#092C4C] text-white px-8 py-3 text-lg">
               Get Tickets
             </Button>
           </div>
