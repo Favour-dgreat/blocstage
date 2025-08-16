@@ -9,7 +9,7 @@ const SignupPage = () => {
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
-    country: "",
+    
     email: "",
     password: "",
     confirmPassword: "",
@@ -23,21 +23,50 @@ const SignupPage = () => {
 
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
-    
     setStep(2);
   };
   const router = useRouter();
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { firstName, lastName, country, email, password, confirmPassword } = form;
+    const { firstName, lastName, email, password, confirmPassword } = form;
+
     if (password !== confirmPassword) {
       alert("Passwords do not match");
       return;
     }
-    router.push("/otppage"); // Redirect to OTP page after signup
-    // Handle signup logic here
+
+    try {
+      const response = await fetch("https://api.blocstage.com/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          password,
+        }),
+      });
+
+      if (response.ok) {
+        // Handle successful registration
+        router.push("/otppage"); // Redirect to OTP page
+      } else {
+        // Handle errors from the API
+        const errorData = await response.json();
+        console.error("Registration error:", errorData);
+        // Display error message to the user
+        alert(`Registration failed: ${errorData.message}`);
+      }
+    } catch (error) {
+      // Handle network errors
+      console.error("Signup error:", error);
+      alert("An error occurred during registration. Please try again.");
+    }
   };
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

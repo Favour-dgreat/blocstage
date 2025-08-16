@@ -2,6 +2,7 @@
 
 import { Calendar, Clock, MapPin, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 interface EventPreviewProps {
   data: any;
@@ -41,7 +42,7 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
           <span>Preview Event</span>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="px-6">
+          <Button variant="outline" className="px-6" onClick={onBack}>
             Edit
           </Button>
           <Button 
@@ -119,7 +120,7 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
 
           {/* Get Tickets Button */}
           <div className="mb-8">
-            <Button className="bg-[#092C4C] hover:bg-[#092C4C] text-white px-8 py-3 text-lg">
+            <Button className="bg-[#092C4C] hover:bg-[#092C4C] text-white px-4 py-2 text-sm">
               Get Tickets
             </Button>
           </div>
@@ -167,15 +168,20 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
           )}
 
           {/* Explore Templates */}
-          <div className="bg-gray-50 rounded-lg p-6">
-            <div className="flex items-start gap-4">
+          <div className="bg-[#FFFFFF] shadow-md rounded-lg p-6">
+            <div className="flex flex-col items-start gap-4">
               <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
-                <div className="w-6 h-6 bg-gray-300 rounded"></div>
+                <Image
+                  src="/images/template1.png"
+                  alt="Template Icon"
+                  width={30}
+                  height={30}
+                />
               </div>
               <div>
-                <h3 className="font-medium text-gray-900 mb-2">Explore other templates</h3>
-                <p className="text-sm text-gray-600">
-                  Check out other website template for your event
+                <h3 className="font-medium text-[#092C4C] mb-2">Explore other templates</h3>
+                <p className="text-sm text-[#4F4F4F]">
+                  Check out other website templates for your event
                 </p>
               </div>
             </div>

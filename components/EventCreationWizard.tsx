@@ -47,6 +47,10 @@ export default function EventCreationWizard() {
     setEventData((prev) => ({ ...prev, ...data }));
   };
 
+  const handleStepClick = (index: any) => {
+    setCurrentStep(index);
+  };
+
   return (
     <div className="ml-64 max-w-6xl mx-auto px-8 py-8">
       {/* Breadcrumb */}
@@ -58,35 +62,38 @@ export default function EventCreationWizard() {
         </div>
       </div>
 
-      {/* Progress Steps */}
+      {/*Progress Steps*/}
       <div className="mb-12">
         <div className="flex items-center justify-between ">
+          
           {steps.map((step, index) => (
-            <div key={step.id} className="flex items-center  flex-1">
-              <div className="flex flex-col items-center">
-                {/* {step.title} */}
+            
+            <div key={step.id} className="flex items-center flex-1">
+              
+              <div
+                className="flex flex-col items-center cursor-pointer"
+                onClick={() => handleStepClick(index)}
+              >
+                {/* Step Title */}
+                
+                {/* Step Circle */}
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                    index <= currentStep
-                      ? "bg-[#092C4C] border-[#092C4C] text-white"
-                      : "border-gray-300 text-gray-400"
+                  className={`w-5 h-5 rounded-full flex items-center justify-center border-2 ${
+                    index < currentStep
+                      ? "bg-[#092C4C] border-[#092C4C] text-white" // Completed Step
+                      : index === currentStep
+                      ? "bg-white border-[#092C4C] text-[#092C4C]" // Current Step
+                      : "border-gray-300 text-gray-400" // Incomplete Step
                   }`}
                 >
-                  {index < currentStep ? (
-                    <Check className="w-4 h-4" />
-                  ) : (
-                    <span className="text-sm font-medium">{index + 1}</span>
-                  )}
+                  {index < currentStep && <Check className="w-4 h-4" />}
                 </div>
-                <span
-                  className={`ml-2 text-sm font-medium ${
-                    index <= currentStep ? "text-[#092C4C]" : "text-gray-400"
-                  }`}
-                ></span>
+                
               </div>
+              {/* Progress Bar */}
               {index < steps.length - 1 && (
                 <div
-                  className={`flex-1  h-1.5   ${
+                  className={`flex-1 flex-row h-1.5 ${
                     index < currentStep ? "bg-[#092C4C]" : "bg-gray-200"
                   }`}
                 />
@@ -95,7 +102,6 @@ export default function EventCreationWizard() {
           ))}
         </div>
       </div>
-
       {/* Content */}
       <div className="bg-white rounded-lg">
         <div className="p-8">
@@ -109,7 +115,6 @@ export default function EventCreationWizard() {
 
           {currentStep === 1 && (
             <EventDetailsPreview
-              
               onBack={handleBack}
               onUpdate={updateEventData}
               onNext={handleNext}
@@ -145,10 +150,7 @@ export default function EventCreationWizard() {
                 setCurrentStep(0);
               }}
             />
-            
           )}
-         
-         
         </div>
       </div>
     </div>

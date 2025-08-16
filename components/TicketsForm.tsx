@@ -23,7 +23,7 @@ interface TicketType {
   purchaseLimit: string;
   currency: string;
   amount: string;
-  benefits: string;
+  benefits: string[];
   isTransferable: boolean;
   isFree: boolean;
   isResellable: boolean;
@@ -36,17 +36,7 @@ interface TicketsFormProps {
   onNext: () => void;
   onBack: () => void;
 }
-
-export default function TicketsForm({
-  data,
-  onUpdate,
-  onNext,
-  onBack,
-}: TicketsFormProps) {
-  const [tickets, setTickets] = useState<TicketType[]>(data.tickets || []);
-  const [hasTickets, setHasTickets] = useState(data.tickets?.length > 0);
-
-  const createEmptyTicket = (): TicketType => ({
+const createEmptyTicket = (): TicketType => ({
     id: Date.now().toString(),
     name: "",
     type: "",
@@ -54,12 +44,25 @@ export default function TicketsForm({
     purchaseLimit: "5",
     currency: "Naira",
     amount: "",
-    benefits: "",
+    benefits: [""],
     isTransferable: false,
     isResellable: false,
     isFree: false,
     availableTickets: "",
   });
+
+export default function TicketsForm({
+  data,
+  onUpdate,
+  onNext,
+  onBack,
+}: TicketsFormProps) {
+  const [tickets, setTickets] = useState<TicketType[]>(
+    data.tickets?.length > 0 ? data.tickets : [createEmptyTicket()]
+  );
+  const [hasTickets, setHasTickets] = useState(tickets.length > 0);
+
+  
 
   useEffect(() => {
     setHasTickets(tickets.length > 0);
@@ -87,7 +90,28 @@ export default function TicketsForm({
   };
 
   const addBenefit = (ticketId: string) => {
-    console.log("Add benefit for ticket:", ticketId);
+    const updatedTickets = tickets.map((ticket) =>
+      ticket.id === ticketId
+        ? { ...ticket, benefits: [...ticket.benefits, ""] }
+        : ticket
+    );
+    setTickets(updatedTickets);
+    onUpdate({ tickets: updatedTickets });
+  };
+
+  const removeBenefit = (ticketId: string, benefitIndex: number) => {
+    const updatedTickets = tickets.map((ticket) =>
+      ticket.id === ticketId
+        ? {
+            ...ticket,
+            benefits: ticket.benefits.filter(
+              (_, index) => index !== benefitIndex
+            ),
+          }
+        : ticket
+    );
+    setTickets(updatedTickets);
+    onUpdate({ tickets: updatedTickets });
   };
 
   return (
@@ -140,14 +164,14 @@ export default function TicketsForm({
                           </SelectTrigger>
                           <SelectContent
                             position="popper"
-                            className="z-50 bg-white border border-gray-200 shadow-md rounded-md"
+                            className="z-50 bg-white border border-gray-200 shadow-md  rounded-md"
                           >
-                            <SelectItem value="regular">Regular</SelectItem>
-                            <SelectItem value="vip">VIP</SelectItem>
-                            <SelectItem value="early-bird">
+                            <SelectItem value="regular" className="hover:bg-gray-100">Regular</SelectItem>
+                            <SelectItem value="vip" className="hover:bg-gray-100">VIP </SelectItem>
+                            <SelectItem value="early-bird" className="hover:bg-gray-100">
                               Early Bird
                             </SelectItem>
-                            <SelectItem value="student">Student</SelectItem>
+                            <SelectItem value="student" className="hover:bg-gray-100">Student</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -168,9 +192,12 @@ export default function TicketsForm({
                           <SelectTrigger className="rounded-sm">
                             <SelectValue placeholder="Select option" />
                           </SelectTrigger>
-                          <SelectContent position="popper" className="z-50 bg-white border border-gray-200 shadow-md rounded-md">
-                            <SelectItem value="unlimited">Unlimited</SelectItem>
-                            <SelectItem value="limited">Limited</SelectItem>
+                          <SelectContent
+                            position="popper"
+                            className="z-50 bg-white border  border-gray-200 shadow-md rounded-md"
+                          >
+                            <SelectItem value="unlimited" className="hover:bg-gray-100">Unlimited</SelectItem>
+                            <SelectItem value="limited"className="hover:bg-gray-100" >Limited</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -188,11 +215,14 @@ export default function TicketsForm({
                           <SelectTrigger className="rounded-sm">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent position="popper" className="z-50 bg-white border border-gray-200 shadow-md rounded-md">
-                            <SelectItem value="1">1</SelectItem>
-                            <SelectItem value="2">2</SelectItem>
-                            <SelectItem value="5">5</SelectItem>
-                            <SelectItem value="10">10</SelectItem>
+                          <SelectContent
+                            position="popper"
+                            className="z-50 bg-white border border-gray-200 shadow-md rounded-md"
+                          >
+                            <SelectItem value="1" className="hover:bg-gray-100">1</SelectItem>
+                            <SelectItem value="2" className="hover:bg-gray-100">2</SelectItem>
+                            <SelectItem value="5" className="hover:bg-gray-100">5</SelectItem>
+                            <SelectItem value="10" className="hover:bg-gray-100">10</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -234,10 +264,13 @@ export default function TicketsForm({
                           <SelectTrigger className="rounded-sm">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent position="popper" className="z-50 bg-white border border-gray-200 shadow-md rounded-md">
-                            <SelectItem value="Naira">Naira</SelectItem>
-                            <SelectItem value="USD">USD</SelectItem>
-                            <SelectItem value="EUR">EUR</SelectItem>
+                          <SelectContent
+                            position="popper"
+                            className="z-50 bg-white border border-gray-200 shadow-md rounded-md"
+                          >
+                            <SelectItem value="Naira" className="hover:bg-gray-100">Naira</SelectItem>
+                            <SelectItem value="USD" className="hover:bg-gray-100">USD</SelectItem>
+                            <SelectItem value="EUR" className="hover:bg-gray-100">EUR</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -275,22 +308,40 @@ export default function TicketsForm({
                     </div>
 
                     {/* Benefits */}
+
                     <div className="mb-4 relative z-10">
                       <div className="flex items-center justify-between mb-4">
                         <label className="block text-sm font-medium text-[#BDBDBD]">
                           Benefits
                         </label>
                       </div>
-
-                      <Input
-                        type="text"
-                        value={ticket.benefits}
-                        onChange={(e) =>
-                          updateTicket(ticket.id, "benefits", e.target.value)
-                        }
-                        className="rounded-sm"
-                        placeholder="e.g Free drinks"
-                      />
+                      {ticket.benefits.map((benefit, index) => (
+                        <div key={index} className="flex items-center mb-2">
+                          <Input
+                            type="text"
+                            value={benefit}
+                            onChange={(e) => {
+                              const updatedBenefits = [...ticket.benefits];
+                              updatedBenefits[index] = e.target.value;
+                              updateTicket(
+                                ticket.id,
+                                "benefits",
+                                updatedBenefits
+                              );
+                            }}
+                            className="rounded-sm flex-grow mr-2"
+                            placeholder="e.g. Free drinks"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeBenefit(ticket.id, index)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
                       <button
                         type="button"
                         onClick={() => addBenefit(ticket.id)}
@@ -386,8 +437,7 @@ export default function TicketsForm({
                       {ticket.name || "Regular"}
                     </h4>
                     <span className="text-sm text-[#E04E1E] bg-[#FBEAE4] p-1 rounded">
-                      {ticket.benefits ? ticket.benefits.split(",").length : 0}{" "}
-                      Benefits
+                      {ticket.benefits ? ticket.benefits.length : 0} Benefits
                     </span>
                   </div>
 
