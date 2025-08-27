@@ -76,7 +76,7 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
         <div className="p-8">
           {/* Event Title */}
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
-            {data.name || 'BTS Watch Party: Purple Night Edition'}
+            {data.title || 'BTS Watch Party: Purple Night Edition'}
           </h1>
 
           {/* Event Details */}
@@ -88,7 +88,7 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
               <div>
                 <p className="text-sm text-gray-500">Date</p>
                 <p className="font-medium text-gray-900">
-                  {formatDate(data.startDate)}
+                  {formatDate(data.start_time)}
                 </p>
               </div>
             </div>
@@ -100,7 +100,7 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
               <div>
                 <p className="text-sm text-gray-500">Time</p>
                 <p className="font-medium text-gray-900">
-                  {formatTime(data.startDate)} - {formatTime(data.endDate)}
+                  {formatTime(data.start_time)} - {formatTime(data.end_time)}
                 </p>
               </div>
             </div>
@@ -155,10 +155,10 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
                         {session.title || `Session ${index + 1}`}
                       </h3>
                       <p className="text-sm text-gray-500 mb-2">
-                        {session.startTime} - {session.endTime} • 20 mins
+                        {session.start_time} - {session.end_time} • 20 mins
                       </p>
                       <p className="text-sm text-gray-600">
-                        {session.speaker || 'John Okonkor'}
+                        {session.speaker_name || 'John Okonkor'}
                       </p>
                     </div>
                   </div>

@@ -6,13 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { SiFacebook } from "@icons-pack/react-simple-icons";
-import {
- 
-  CheckCircle,
-  
-  Mail,
-  
-} from "lucide-react";
+import { CheckCircle, Mail } from "lucide-react";
 
 const features = [
   {
@@ -135,6 +129,10 @@ const platformFeatures = [
 ];
 
 export default function Home() {
+  const [email, setEmail] = useState("");
+  const [submissionStatus, setSubmissionStatus] = useState<
+    "loading" | "success" | "error" | null
+  >(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -144,6 +142,42 @@ export default function Home() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+
+    setSubmissionStatus("loading");
+
+    try {
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbyyq9pElfxTb7v3pkJ2tMdijEqQYne2sIvESgbjSKiyIXdZtymmLL3YI0T215bhApHcZg/exec",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: email }),
+        }
+      );
+
+      // Log the response to see what's happening
+      console.log("Response from Google Apps Script:", response);
+
+      // Check if the response status is within the success range (200-299)
+      if (response.ok) {
+        setSubmissionStatus("success");
+        setEmail("");
+      } else {
+        // Log the error response body for more detail
+        const errorText = await response.text();
+        console.error("Failed to submit:", response.status, errorText);
+        setSubmissionStatus("error");
+      }
+    } catch (error) {
+      console.error("Submission failed:", error);
+      setSubmissionStatus("error");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -166,10 +200,17 @@ export default function Home() {
                 className="w-28 h-28 object-contain"
               />
             </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <Button className="bg-[#E04E1E] hover:bg-orange-600 text-white hover:cursor-pointer px-6 py-3 text-sm font-medium rounded-md">
-                Join Waitlist
-              </Button>
+            <div className="hidden md:flex items-center space-x-4">
+              <a href="login">
+                <Button className="outline-none text-white hover:cursor-pointer px-6 py-3 text-sm font-medium rounded-md">
+                  Login
+                </Button>
+              </a>
+              <a href="signup">
+                <Button className="bg-[#E04E1E] hover:bg-orange-600 text-white hover:cursor-pointer px-6 py-3 text-sm font-medium rounded-md">
+                  Get Started
+                </Button>
+              </a>
             </div>
           </div>
         </div>
@@ -177,51 +218,54 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center bg-black px-12 py-12">
-  <div
-    className="absolute inset-0 bg-cover bg-center"
-    style={{ backgroundImage: "url('/images/stellarhero.jpg')" }}
-  >
-    <div className="absolute inset-0 bg-black opacity-60" />
-  </div>
-
-  <div className="relative z-10 max-w-7xl mx-auto text-left w-full px-4 sm:px-6 lg:px-8">
-    <div className="max-w-4xl">
-      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-white mb-6">
-        Host <span className="text-[#E04E1E]">Events</span> People Remember. 
-        Build <br /> <span className="text-[#E04E1E]">Communities</span> That Last.
-      </h1>
-      <p className="text-base sm:text-lg md:text-xl text-white mb-8 font-normal max-w-2xl">
-        An all-in-one platform that helps you plan, run, and grow meaningful events and community.
-      </p>
-
-      <div className="mb-10">
-        <Button className="bg-[#E04E1E] hover:bg-orange-600 text-white px-6 py-3 text-sm font-medium rounded-md">
-          Join Waitlist
-        </Button>
-      </div>
-
-      <div className="flex flex-wrap gap-x-8 gap-y-4 text-white text-sm font-medium">
-        <div className="flex items-center gap-2">
-          <CheckCircle className="w-5 h-5 text-[#E04E1E]" />
-          <span>Ticketing</span>
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/images/stellarhero.jpg')" }}
+        >
+          <div className="absolute inset-0 bg-black opacity-60" />
         </div>
-        <div className="flex items-center gap-2">
-          <CheckCircle className="w-5 h-5 text-[#E04E1E]" />
-          <span>Feedbacks</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <CheckCircle className="w-5 h-5 text-[#E04E1E]" />
-          <span>Audience Engagement</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <CheckCircle className="w-5 h-5 text-[#E04E1E]" />
-          <span>Rewards & Bounties</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
+        <div className="relative z-10 max-w-7xl mx-auto text-left w-full px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-white mb-6">
+              Host <span className="text-[#E04E1E]">Events</span> People
+              Remember. Build <br />{" "}
+              <span className="text-[#E04E1E]">Communities</span> That Last.
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl text-white mb-8 font-normal max-w-2xl">
+              An all-in-one platform that helps you plan, run, and grow
+              meaningful events and community.
+            </p>
+
+            <div className="mb-10">
+              <a href="#waitlist-section">
+                <Button className="bg-[#E04E1E] hover:bg-orange-600 text-white px-6 py-3 text-sm font-medium rounded-md">
+                  Join Our Newsletter
+                </Button>
+              </a>
+            </div>
+
+            <div className="flex flex-wrap gap-x-8 gap-y-4 text-white text-sm font-medium">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-[#E04E1E]" />
+                <span>Ticketing</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-[#E04E1E]" />
+                <span>Feedbacks</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-[#E04E1E]" />
+                <span>Audience Engagement</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-[#E04E1E]" />
+                <span>Rewards & Bounties</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Event Management Section */}
       <section className="py-16 md:py-24 bg-gray-50">
@@ -233,117 +277,48 @@ export default function Home() {
             </h2>
           </div>
           <div className="relative">
-            {/* Radiant orange circle */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none w-40 h-40 md:w-64 md:h-64 rounded-full bg-gradient-to-br from-[#FFE5D0] via-[#FFD1B3] to-[#FFB380] opacity-20 blur-2xl"></div>
             <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 relative z-10">
-              {/* Top-left card */}
-              <div>
-                <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md" style={{ padding: "20px" }}>
-                  <CardHeader>
-                    <div className="mb-4 ">{features[0].icon}</div>
-                    <CardTitle className="text-xl font-semibold text-gray-900 max-w-3xl mb-4">
-                      {features[0].title.split(" ").map((word, idx, arr) => {
-                        // Split into two roughly equal lines
-                        const mid = Math.ceil(arr.length / 2);
-                        if (idx === mid)
-                          return (
-                            <>
-                              <br key="break" />
-                              {word}{" "}
-                            </>
-                          );
-                        return word + " ";
-                      })}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 leading-relaxed">
-                      {features[0].description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-              {/* Top-right card */}
-              <div>
-                <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md" style={{ padding: "20px" }}>
-                  <CardHeader>
-                    <div className="mb-4 ">{features[1].icon}</div>
-                    <CardTitle className="text-xl font-semibold text-gray-900 mb-4">
-                      {features[1].title.split(" ").map((word, idx, arr) => {
-                        // Split into two roughly equal lines
-                        const mid = Math.ceil(arr.length / 2);
-                        if (idx === mid)
-                          return (
-                            <>
-                              <br key="break" />
-                              {word}{" "}
-                            </>
-                          );
-                        return word + " ";
-                      })}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 leading-relaxed">
-                      {features[1].description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-              {/* Bottom-left card */}
-              <div>
-                <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md" style={{ padding: "20px" }}>
-                  <CardHeader>
-                    <div className="mb-4 ">{features[2].icon}</div>
-                    <CardTitle className="text-xl font-semibold text-gray-900 mb-4">
-                      {features[2].title.split(" ").map((word, idx, arr) => {
-                        // Split into two roughly equal lines
-                        const mid = Math.ceil(arr.length / 2);
-                        if (idx === mid)
-                          return (
-                            <>
-                              <br key="break" />
-                              {word}{" "}
-                            </>
-                          );
-                        return word + " ";
-                      })}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 leading-relaxed">
-                      {features[2].description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-              {/* Bottom-right card */}
-              <div>
-                <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md" style={{ padding: "20px" }}>
-                  <CardHeader>
-                    <div className="mb-4 ">{features[3].icon}</div>
-                    <CardTitle className="text-xl font-semibold text-gray-900 mb-4">
-                      {features[3].title.split(" ").map((word, idx, arr) => {
-                        // Split into two roughly equal lines
-                        const mid = Math.ceil(arr.length / 2);
-                        if (idx === mid)
-                          return (
-                            <>
-                              <br key="break" />
-                              {word}{" "}
-                            </>
-                          );
-                        return word + " ";
-                      })}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 leading-relaxed">
-                      {features[3].description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
+              {features.slice(0, 2).map((feature, index) => (
+                <div key={index}>
+                  <Card
+                    className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md"
+                    style={{ padding: "20px" }}
+                  >
+                    <CardHeader>
+                      <div className="mb-4 ">{feature.icon}</div>
+                      <CardTitle className="text-xl font-semibold text-gray-900 max-w-3xl mb-4">
+                        {feature.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-600 leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
+              {features.slice(2, 4).map((feature, index) => (
+                <div key={index + 2}>
+                  <Card
+                    className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md"
+                    style={{ padding: "20px" }}
+                  >
+                    <CardHeader>
+                      <div className="mb-4 ">{feature.icon}</div>
+                      <CardTitle className="text-xl font-semibold text-gray-900 mb-4">
+                        {feature.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-600 leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -373,7 +348,7 @@ export default function Home() {
               <div className="space-y-6">
                 {engagementFeatures.map((feature, index) => (
                   <div key={index} className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-12 h-12  items-center justify-center">
+                    <div className="flex-shrink-0 w-12 h-12 items-center justify-center">
                       {feature.icon}
                     </div>
                     <div>
@@ -401,7 +376,7 @@ export default function Home() {
       >
         <div className="max-w-7xl sm:px-6 lg:px-8 mx-auto px-4">
           <div className="text-left ">
-            <h2 className="text-3xl md:text-4xl font-bold text-white  px-4 max-w-2xl mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white px-4 max-w-2xl mb-12">
               Recognize contributions.
               <br className="hidden md:block" /> Reward engagement.{" "}
               <br className="hidden md:block" /> Track impact.
@@ -547,12 +522,14 @@ export default function Home() {
       </section>
 
       {/* Web3 Ready Section */}
-      <section className="py-16 md:py-24 bg-[#476D8F]">
+      <section className="py-16 md:py-24 bg-[#476D8F]" id="waitlist-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                Traditional-<br className="hidden md:block" />Friendly. <br className="hidden md:block" /> Web3-Ready.
+                Traditional-
+                <br className="hidden md:block" />
+                Friendly. <br className="hidden md:block" /> Web3-Ready.
               </h2>
             </div>
             <div className="relative">
@@ -564,21 +541,37 @@ export default function Home() {
                 a traditional event tool — and opens up next-gen engagement when
                 you&#39;re ready.
               </p>
-              <form>
+              <form onSubmit={handleSubmit}>
                 <div className="flex w-full max-w-md bg-white rounded-lg border border-gray-300 shadow-sm overflow-hidden">
                   <input
                     type="email"
                     placeholder="Enter your email"
                     className="flex-1 px-4 py-3 border-none focus:outline-none text-gray-900 bg-transparent"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                   <Button
                     className="bg-[#E04E1E] hover:bg-orange-600 text-white px-6 py-6 rounded-lg text-base font-semibold shadow-none transition"
                     type="submit"
                     style={{ minWidth: "auto" }}
+                    disabled={submissionStatus === "loading"}
                   >
-                    Join Waitlist
+                    {submissionStatus === "loading"
+                      ? "Joining..."
+                      : "Join the family"}
                   </Button>
                 </div>
+                {submissionStatus === "success" && (
+                  <p className="mt-4 text-white text-sm">
+                    🎉 You've successfully joined the waitlist!
+                  </p>
+                )}
+                {submissionStatus === "error" && (
+                  <p className="mt-4 text-red-400 text-sm">
+                    Something went wrong. Please try again.
+                  </p>
+                )}
               </form>
             </div>
           </div>
@@ -587,8 +580,7 @@ export default function Home() {
 
       {/* All-in-One Platform Section */}
       <section className="py-16 md:py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto  sm:px-6 lg:px-8">
-          {/* heading */}
+        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           <div className="mb-12 max-w-md text-left">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
               Ditch the Tool Stack
@@ -596,7 +588,6 @@ export default function Home() {
             </h2>
           </div>
 
-          {/* features grid */}
           <div className="mx-auto max-w-1xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-8">
             {platformFeatures.map((feature, idx) => (
               <div key={idx} className="flex items-center space-x-3">
@@ -617,24 +608,20 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-[#092C4C] text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-       
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            {/* blocsagelogo + catchphrase */}
             <div>
               <div className="flex gap-10 items-center space-x-3 mb-2">
-                 <Image
-                src="./images/blocsagelogo.png"
-                alt="BlocStage blocsagelogo"
-                width={56}
-                height={56}
-                className="w-18 h-18 object-contain"
-              />
-                {/* <span className="text-xl font-semibold">blocStage</span> */}
+                <Image
+                  src="./images/blocsagelogo.png"
+                  alt="BlocStage blocsagelogo"
+                  width={56}
+                  height={56}
+                  className="w-18 h-18 object-contain"
+                />
               </div>
               <p className="text-gray-200 text-lg">Catch Phrase here</p>
             </div>
 
-            {/* follow us */}
             <div className="flex flex-col space-y-6 md:space-y-0 md:items-start">
               <h4 className="text-lg font-semibold mb-4">Follow Us</h4>
               <div className="flex items-center space-x-6 md:space-x-2 flex-wrap ">
@@ -677,7 +664,6 @@ export default function Home() {
                   />
                   <span>Twitter</span>
                 </a>
-
                 <a
                   href="#"
                   className="flex items-center space-x-2 text-gray-300 hover:text-white"
@@ -694,11 +680,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-
-          {/* divider */}
           <hr className="border-gray-600 my-8" />
-
-          {/* bottom section: copyright | links */}
           <div className="flex flex-col md:flex-row items-center justify-between text-gray-300 text-sm space-y-4 md:space-y-0">
             <div>© 2025 BlocStage. All rights reserved.</div>
             <div className="flex space-x-6">

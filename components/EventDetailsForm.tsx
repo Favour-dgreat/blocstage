@@ -4,18 +4,20 @@ import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
+import { useSearchParams } from "next/navigation";
 
 // Event data type
 export interface EventData {
-  name: string;
+  title: string;
   description: string;
   location: string;
+  category: string;
   isOnline: boolean;
-  startDate: string;
-  endDate: string;
+  start_time: string;
+  tag?: string[];
+  end_time: string;
   image?: File | null;
 }
 
@@ -36,7 +38,7 @@ export default function EventDetailsForm({
   const handleChange = (update: Partial<EventData>) => {
     const newData = { ...localData, ...update };
     setLocalData(newData);
-    onUpdate(update); // optional: keep parent in sync too
+    onUpdate(update); 
   };
   const handleContinue = () => {
     localStorage.setItem("eventData", JSON.stringify(localData));
@@ -46,7 +48,7 @@ export default function EventDetailsForm({
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#092C4C] mb-2">Hi John</h1>
+        <h1 className="text-2xl font-bold text-[#092C4C] mb-2">Hi  </h1>
         <p className="text-gray-600">
           Let&apos;s get your event up and running!
         </p>
@@ -61,8 +63,8 @@ export default function EventDetailsForm({
           Event Name
         </label>
         <Input
-          value={localData.name}
-          onChange={(e) => handleChange({ name: e.target.value })}
+          value={localData.title}
+          onChange={(e) => handleChange({ title: e.target.value })}
           placeholder="BTS Watch Party: Purple Night Edition"
           className="w-full"
         />
@@ -111,7 +113,18 @@ export default function EventDetailsForm({
           </label>
         </div>
       </div>
-
+      {/* Category */}
+      <div className="mt-6">
+        <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+          Event Category
+        </label>
+        <Input
+          value={localData.category}
+          onChange={(e) => handleChange({ category: e.target.value })}
+          placeholder="Tech Event, Conference, Meetup, Workshop"
+          className="w-full"
+        />
+       </div>
       {/* Dates */}
       <div className="grid grid-cols-1 mt-6 gap-4">
         <div>
@@ -121,8 +134,9 @@ export default function EventDetailsForm({
           <div className="relative">
             <Input
               type="datetime-local"
-              value={localData.startDate}
-              onChange={(e) => handleChange({ startDate: e.target.value })}
+              step="1"
+              value={localData.start_time}
+              onChange={(e) => handleChange({ start_time: e.target.value })}
               className="w-full"
             />
             <Calendar className="absolute right-3 top-3 h-4 w-4 text-gray-400 pointer-events-none" />
@@ -136,15 +150,34 @@ export default function EventDetailsForm({
           <div className="relative">
             <Input
               type="datetime-local"
-              value={localData.endDate}
-              onChange={(e) => handleChange({ endDate: e.target.value })}
+              step="1"
+              value={localData.end_time}
+              onChange={(e) => handleChange({ end_time: e.target.value })}
               className="w-full"
             />
             <Calendar className="absolute right-3 top-3 h-4 w-4 text-gray-400 pointer-events-none" />
           </div>
         </div>
       </div>
-
+ <div className="mt-6">
+        <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+          Tags
+        </label>
+        <p className="text-xs text-gray-400 mb-2">
+          Add up to 5 tags to describe your event (e.g., Music, Networking,
+          Workshop)
+        </p>
+        <Input
+          type="text"
+          value={localData.tag?.join(", ")} // Display tags as a comma-separated string
+          onChange={(e) =>
+            handleChange({ tag: e.target.value.split(",").map((tag) => tag.trim()) })
+          }
+          placeholder="e.g., Music, Networking, Workshop"
+          className="w-full"
+        />
+     
+        </div>
       {/* Continue Button */}
       <div className="flex justify-end mt-8">
         <Button

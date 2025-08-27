@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation";
 const SignupPage = () => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
+    userName: "",
     firstName: "",
     lastName: "",
-    
+    country: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -28,44 +29,48 @@ const SignupPage = () => {
   const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { firstName, lastName, email, password, confirmPassword } = form;
+  e.preventDefault();
+  const { firstName, lastName, userName, email, password, confirmPassword } = form;
 
-    if (password !== confirmPassword) {
-      alert("Passwords do not match");
-      return;
+  if (password !== confirmPassword) {
+    alert("Passwords do not match");
+    return;
+  }
+
+  try {
+    const response = await fetch("https://api.blocstage.com/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: userName, 
+        email,
+        password,
+        first_name: firstName, 
+        last_name: lastName,   
+      }),
+    });
+
+    if (response.ok) {
+      // Handle successful registration
+      sessionStorage.setItem("registeredUserName", userName);
+      sessionStorage.setItem("registeredEmail", email);
+      router.push("/verify-email"); // Redirect to OTP page
+      console.log(userName);
+    } else {
+      // Handle errors from the API
+      const errorData = await response.json();
+      console.error("Registration error:", errorData);
+      // Display error message to the user
+      alert(`Registration failed: ${errorData.message}`);
     }
-
-    try {
-      const response = await fetch("https://api.blocstage.com/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          email,
-          password,
-        }),
-      });
-
-      if (response.ok) {
-        // Handle successful registration
-        router.push("/otppage"); // Redirect to OTP page
-      } else {
-        // Handle errors from the API
-        const errorData = await response.json();
-        console.error("Registration error:", errorData);
-        // Display error message to the user
-        alert(`Registration failed: ${errorData.message}`);
-      }
-    } catch (error) {
-      // Handle network errors
-      console.error("Signup error:", error);
-      alert("An error occurred during registration. Please try again.");
-    }
-  };
+  } catch (error) {
+    // Handle network errors
+    console.error("Signup error:", error);
+    alert("An error occurred during registration. Please try again.");
+  }
+};
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -107,6 +112,20 @@ const SignupPage = () => {
 <form onSubmit={step === 1 ? handleNext : handleSignup} className="space-y-6">
   {step === 1 ? (
     <>
+    <div>
+        <label className="block text-sm font-semibold text-gray-400 mb-1">
+          Username
+        </label>
+        <input
+          type="text"
+          name="userName"
+          placeholder="Johndoe"
+          value={form.userName}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+          required
+        />
+      </div>
       <div>
         <label className="block text-sm font-semibold text-gray-400 mb-1">
           Email Address
@@ -259,7 +278,6 @@ const SignupPage = () => {
           <option value="USA">USA</option>
           <option value="Canada">Canada</option>
           <option value="UK">UK</option>
-      
         </select>
       </div>
 
@@ -278,7 +296,7 @@ const SignupPage = () => {
         {/* Sign In Link */}
         <p className="text-center mt-6 text-gray-600 text-sm">
           Already have an account?{" "}
-          <a href="#" className="text-[#f4511e] font-semibold">
+          <a href="/login" className="text-[#f4511e] font-semibold">
             Sign In
           </a>
         </p>

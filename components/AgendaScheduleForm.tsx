@@ -9,10 +9,10 @@ import { Switch } from "@/components/ui/switch";
 interface Session {
   id: string;
   title: string;
-  startTime: string;
-  endTime: string;
-  speaker: string;
-  isAssigned: boolean; // Added this for independent toggles
+  start_time: string; // Renamed from startTime
+  end_time: string;   // Renamed from endTime
+  speaker_name: string; // Renamed from speaker
+  session_order: number; // New field
 }
 
 interface AgendaScheduleFormProps {
@@ -35,10 +35,10 @@ export default function AgendaScheduleForm({
           {
             id: "1",
             title: "",
-            startTime: "",
-            endTime: "",
-            speaker: "",
-            isAssigned: false,
+            start_time: "",
+            end_time: "",
+            speaker_name: "",
+            session_order: 0,
           },
         ]
   );
@@ -50,10 +50,10 @@ export default function AgendaScheduleForm({
     const newSession: Session = {
       id: Date.now().toString(),
       title: "",
-      startTime: "",
-      endTime: "",
-      speaker: "",
-      isAssigned: false,
+      start_time: "",
+      end_time: "",
+      speaker_name: "",
+      session_order: sessions.length,
     };
     setSessions((prev) => [...prev, newSession]);
     setShowSkip(false);
@@ -118,9 +118,9 @@ export default function AgendaScheduleForm({
                     type="text"
                     placeholder="Pick time"
                     onFocus={(e) => (e.target.type = "time")}
-                    value={session.startTime}
+                    value={session.start_time} // Changed to start_time
                     onChange={(e) =>
-                      updateSession(session.id, "startTime", e.target.value)
+                      updateSession(session.id, "start_time", e.target.value)
                     }
                     className="w-full"
                   />
@@ -138,9 +138,9 @@ export default function AgendaScheduleForm({
                     type="text"
                     placeholder="Pick time"
                     onFocus={(e) => (e.target.type = "time")}
-                    value={session.endTime}
+                    value={session.end_time} // Changed to end_time
                     onChange={(e) =>
-                      updateSession(session.id, "endTime", e.target.value)
+                      updateSession(session.id, "end_time", e.target.value)
                     }
                     className="w-full"
                   />
@@ -155,9 +155,9 @@ export default function AgendaScheduleForm({
                 <div className="relative">
                   <Input
                     type="text"
-                    value={session.speaker}
+                    value={session.speaker_name} 
                     onChange={(e) =>
-                      updateSession(session.id, "speaker", e.target.value)
+                      updateSession(session.id, "speaker_name", e.target.value)
                     }
                     placeholder="Chioma Chiboo Ibekwe"
                     className="w-full"
@@ -172,18 +172,7 @@ export default function AgendaScheduleForm({
                 <p className="text-sm font-light text-[#282828]">
                   Assign Speaker
                 </p>
-                <Switch
-                  id={`assign-speaker-${session.id}`}
-                  checked={session.isAssigned}
-                  onCheckedChange={(checked) =>
-                    updateSession(session.id, "isAssigned", checked)
-                  }
-                  className={
-                    session.isAssigned
-                      ? "bg-[#092C4C] text-white hover:bg-[#092C4C]"
-                      : "text-gray-600 border-gray-300 hover:bg-gray-100"
-                  }
-                />
+                {/* Removed Switch as it's not in API */}
               </div>
               {sessions.length > 1 && (
                 <Button

@@ -92,11 +92,11 @@ export default function EventPreview({ onBack, onUpdate, onNext }: EventPreviewP
       <div className="grid grid-cols-2 gap-8">
         {/* Left Preview */}
         <div className="space-y-4 bg-[#F4F3F3] p-6 rounded-lg">
-          <h3 className="text-xl font-semibold text-[#08080E]">{eventData.name}</h3>
+          <h3 className="text-xl font-semibold text-[#08080E]">{eventData.title}</h3>
           <div className="flex items-center text-gray-600">
             <CalendarDays className="w-6 h-6 mr-2 text-[#E04E1E]" />
             <span>
-              {new Date(eventData.startDate).toLocaleDateString(undefined, {
+              {new Date(eventData.start_time).toLocaleDateString(undefined, {
                 weekday: "long",
                 month: "long",
                 day: "numeric",
@@ -107,12 +107,12 @@ export default function EventPreview({ onBack, onUpdate, onNext }: EventPreviewP
           <div className="flex items-center text-gray-600">
             <Clock className="w-6 h-6 mr-2 text-[#E04E1E]" />
             <span>
-              {new Date(eventData.startDate).toLocaleTimeString([], {
+              {new Date(eventData.start_time).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               })}{" "}
               -{" "}
-              {new Date(eventData.endDate).toLocaleTimeString([], {
+              {new Date(eventData.end_time).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
