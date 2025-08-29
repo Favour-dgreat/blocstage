@@ -238,9 +238,9 @@ export default function Home() {
             </p>
 
             <div className="mb-10">
-              <a href="#waitlist-section">
+              <a href="/signup">
                 <Button className="bg-[#E04E1E] hover:bg-orange-600 text-white px-6 py-3 text-sm font-medium rounded-md">
-                  Join Our Newsletter
+                  Get Started
                 </Button>
               </a>
             </div>
