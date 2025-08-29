@@ -100,7 +100,7 @@ const SignupPage = () => {
 
         {/* Heading */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">
+          <h1 className="text-3xl font-bold mb-2 mt-4">
             {step === 1 ? "Create Account" : "Tell us About Yourself"}
           </h1>
           <p className="text-gray-600">
