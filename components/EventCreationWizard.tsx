@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check } from "lucide-react";
+import { useRouter } from "next/navigation";
 import EventDetailsForm from "./EventDetailsForm";
 import EventDetailsPreview from "./EventDetailsPreview";
 import AgendaScheduleForm from "./AgendaScheduleForm";
@@ -38,6 +39,8 @@ export default function EventCreationWizard() {
       },
     ],
   });
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const router = useRouter();
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -146,7 +149,7 @@ const uploadImageToCloudinary = async (imageFile:any) => {
       });
 
       if (response.ok) {
-        alert("Event published successfully!");
+       setShowSuccessModal(true);
         setCurrentStep(0);
         setEventData({
           title: "",
@@ -168,6 +171,10 @@ const uploadImageToCloudinary = async (imageFile:any) => {
             },
           ],
         });
+         setTimeout(() => {
+          setShowSuccessModal(false);
+          router.push("/viewevent");
+        }, 60000);
       } else {
         const errorData = await response.json();
         console.log(payload);
@@ -183,54 +190,78 @@ const uploadImageToCloudinary = async (imageFile:any) => {
   };
 
   return (
-    <div className="ml-64 max-w-6xl mx-auto px-8 py-8">
+    <div className="md:ml-64 max-w-6xl mx-auto px-8 py-8">
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center">
+            <div className="bg-green-100 rounded-full p-4 mb-4">
+              <Check className="w-12 h-12 text-green-600" />
+            </div>
+            <p className="text-lg font-semibold text-gray-800 mb-2 text-center">
+              Event published successfully!
+            </p>
+            <p className="text-sm text-gray-500 text-center">
+              Redirecting to your events page...
+            </p>
+          </div>
+        </div>
+      )}
       {/* Breadcrumb */}
       <div className="mb-8">
-        <div className="flex items-center text-sm text-gray-500">
+        <h1 className="text-[#092C4C] font-bold mb-4">Event</h1>
+
+        <div className="flex items-center text-md text-gray-500">
+          <a href="/viewevent" className="hover:underline">
           <span className="text-orange-500">Event</span>
+          </a>
           <span className="mx-2">/</span>
           <span>Create Event</span>
         </div>
       </div>
 
       {/* Progress Steps */}
-      <div className="mb-12">
-        <div className="flex items-center justify-between ">
-          {steps.map((step, index) => (
-            <div key={step.id} className="flex items-center flex-1">
-              <div
-                className="flex flex-col items-center cursor-pointer"
-                onClick={() => handleStepClick(index)}
-              >
-                {/* Step Circle */}
-                <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center border-2 ${
-                    index < currentStep
-                      ? "bg-[#092C4C] border-[#092C4C] text-white" // Completed Step
-                      : index === currentStep
-                      ? "bg-white border-[#092C4C] text-[#092C4C]" // Current Step
-                      : "border-gray-300 text-gray-400" // Incomplete Step
-                  }`}
-                >
-                  {index < currentStep && <Check className="w-4 h-4" />}
-                </div>
-              </div>
-              {/* Progress Bar */}
-              {index < steps.length - 1 && (
-                <div
-                  className={`flex-1 flex-row h-1.5 ${
-                    index < currentStep ? "bg-[#092C4C]" : "bg-gray-200"
-                  }`}
-                />
-              )}
-            </div>
-          ))}
+   <div className="mb-6">
+  <div className="flex items-center justify-between ">
+    {steps.map((step, index) => (
+      <div key={step.id} className="flex items-center flex-1">
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => handleStepClick(index)}
+        >
+          {/* Step Circle */}
+          <div
+            className={`w-5 h-5 rounded-full flex items-center justify-center border-2 ${
+              index < currentStep
+                ? "bg-[#092C4C] border-[#092C4C] text-white"
+                : index === currentStep
+                ? "bg-white border-[#092C4C] text-[#092C4C]"
+                : "border-gray-300 text-gray-400"
+            }`}
+          >
+            {index < currentStep && <Check className="w-4 h-4" />}
+          </div>
+          {/* Step Name */}
+          {/* <span className="mt-2 text-xs text-center text-gray-700 max-w-[80px]">
+            {step.title}
+          </span> */}
         </div>
+        {/* Progress Bar */}
+        {index < steps.length - 1 && (
+          <div
+            className={`flex-1 flex-row w-2.5 h-1.5 ${
+              index < currentStep ? "bg-[#092C4C]" : "bg-gray-200"
+            }`}
+          />
+        )}
       </div>
+    ))}
+  </div>
+</div>
       {/* Content */}
-      <div className="bg-white rounded-lg">
-        <div className="p-8">
+      <div className=" rounded-lg">
+        <div className="p-2">
           {currentStep === 0 && (
+            
             <EventDetailsForm
               data={eventData}
               onUpdate={updateEventData}

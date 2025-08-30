@@ -14,7 +14,6 @@ const sectionItems = [
   { icon: Settings, title: 'Settings' },
   { icon: GitBranch, title: 'Integration' },
 ];
-
 export default function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 flex flex-col justify-between z-50">

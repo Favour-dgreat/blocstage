@@ -134,6 +134,7 @@ export default function Home() {
     "loading" | "success" | "error" | null
   >(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -183,23 +184,25 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       {/* Navigation */}
       <nav
-        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        className={`fixed top-0 w-full z-50 transition-all duration-300 p-4 ${
           isScrolled
             ? "bg-slate-900/95 backdrop-blur-sm shadow-lg"
             : "bg-transparent"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-between ">
+            <div className="flex items-center">
               <Image
-                src="./images/blocsagelogo.png"
-                alt="BlocStage blocsagelogo"
-                width={56}
-                height={56}
-                className="w-28 h-28 object-contain"
+                src="/images/blocsagelogo.png"
+                alt="BlocStage logo"
+                width={96}
+                height={96}
+                className="object-contain"
+                priority
               />
             </div>
+            {/* Desktop Nav */}
             <div className="hidden md:flex items-center space-x-4">
               <a href="login">
                 <Button className="outline-none text-white hover:cursor-pointer px-6 py-3 text-sm font-medium rounded-md">
@@ -207,37 +210,75 @@ export default function Home() {
                 </Button>
               </a>
               <a href="signup">
-                <Button className="bg-[#E04E1E] hover:bg-orange-600 text-white hover:cursor-pointer px-6 py-3 text-sm font-medium rounded-md">
+                <Button className="bg-[#E04E1E] hover:bg-orange-600 text-white hover:cursor-pointer px-4 py-3 text-sm font-medium rounded-md">
                   Get Started
                 </Button>
               </a>
             </div>
+            {/* Mobile Nav Toggle */}
+            <button
+              className="md:hidden flex items-center px-3 py-2 border rounded text-white border-white"
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              aria-label="Toggle navigation"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d={
+                    mobileNavOpen
+                      ? "M6 18L18 6M6 6l12 12"
+                      : "M4 6h16M4 12h16M4 18h16"
+                  }
+                />
+              </svg>
+            </button>
           </div>
+          {/* Mobile Nav Menu */}
+          {mobileNavOpen && (
+            <div className="md:hidden flex flex-col space-y-2 mt-2 pb-4">
+              <a href="login">
+                <Button className="w-full outline-none text-white hover:cursor-pointer px-6 py-3 text-sm font-medium rounded-md">
+                  Login
+                </Button>
+              </a>
+              <a href="signup">
+                <Button className="w-full bg-[#E04E1E] hover:bg-orange-600 text-white hover:cursor-pointer px-6 py-3 text-sm font-medium rounded-md">
+                  Get Started
+                </Button>
+              </a>
+            </div>
+          )}
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center bg-black px-12 py-12">
+      <section className="relative min-h-screen flex flex-col md:flex-row items-center bg-black px-4 sm:px-8 md:px-12 py-12 pt-32 md:pt-12">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: "url('/images/stellarhero.jpg')" }}
         >
           <div className="absolute inset-0 bg-black opacity-60" />
         </div>
-
-        <div className="relative z-10 max-w-7xl mx-auto text-left w-full px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 max-w-7xl mx-auto text-left w-full px-2 sm:px-4 lg:px-8">
           <div className="max-w-4xl">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-white mb-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight text-white mb-6">
               Host <span className="text-[#E04E1E]">Events</span> People
               Remember. Build <br />{" "}
               <span className="text-[#E04E1E]">Communities</span> That Last.
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-white mb-8 font-normal max-w-2xl">
+            <p className="text-xl sm:text-base md:text-xl text-white mb-8 font-normal max-w-2xl">
               An all-in-one platform that helps you plan, run, and grow
               meaningful events and community.
             </p>
 
-            <div className="mb-10">
+            <div className="mb-8 sm:mb-10">
               <a href="/signup">
                 <Button className="bg-[#E04E1E] hover:bg-orange-600 text-white px-6 py-3 text-sm font-medium rounded-md">
                   Get Started
@@ -245,7 +286,7 @@ export default function Home() {
               </a>
             </div>
 
-            <div className="flex flex-wrap gap-x-8 gap-y-4 text-white text-sm font-medium">
+            <div className="flex flex-wrap gap-x-4 gap-y-2 sm:gap-x-8 sm:gap-y-4 text-white text-xl sm:text-xl font-medium">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-[#E04E1E]" />
                 <span>Ticketing</span>
@@ -268,8 +309,8 @@ export default function Home() {
       </section>
 
       {/* Event Management Section */}
-      <section className="py-16 md:py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-10 sm:py-16 md:py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-4 lg:px-8">
           <div className="text-left mb-12">
             <p className="mb-4 text-[#E04E1E]">Event Management</p>
             <h2 className="text-3xl md:text-4xl max-w-2xl font-bold text-[#282828] mb-4">
@@ -278,7 +319,7 @@ export default function Home() {
           </div>
           <div className="relative">
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none w-40 h-40 md:w-64 md:h-64 rounded-full bg-gradient-to-br from-[#FFE5D0] via-[#FFD1B3] to-[#FFB380] opacity-20 blur-2xl"></div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 md:gap-8 relative z-10">
               {features.slice(0, 2).map((feature, index) => (
                 <div key={index}>
                   <Card
@@ -325,27 +366,27 @@ export default function Home() {
       </section>
 
       {/* Audience Engagement Section */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="relative">
+      <section className="py-10 sm:py-16 md:py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
+            <div className="relative mb-8 lg:mb-0">
               <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-2xl"></div>
-              <div className="relative p-8 rounded-2xl">
+              <div className="relative p-2 sm:p-8 rounded-2xl">
                 <Image
                   src="/images/Rectangle8.png"
                   alt="Audience Engagement"
                   width={600}
                   height={400}
-                  className="w-full h-full object-cover rounded-lg shadow-lg"
+                  className="w-full h-auto object-cover rounded-lg shadow-lg"
                 />
               </div>
             </div>
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 max-w-xl">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6 max-w-xl">
                 Keep Your Audience <br className="hidden md:block" /> Active,
                 Not Just <br className="hidden md:block" /> Present
               </h2>
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {engagementFeatures.map((feature, index) => (
                   <div key={index} className="flex items-start gap-4">
                     <div className="flex-shrink-0 w-12 h-12 items-center justify-center">
@@ -366,7 +407,7 @@ export default function Home() {
 
       {/* Recognition & Rewards Section */}
       <section
-        className="py-16 md:py-24 relative"
+        className="py-10 sm:py-16 md:py-24 relative"
         style={{
           backgroundImage:
             "linear-gradient(to bottom right, rgba(15,15,15,0.85), rgba(30,30,30,0.80)), url('/images/jetpad.jpg')",
@@ -374,7 +415,7 @@ export default function Home() {
           backgroundPosition: "center",
         }}
       >
-        <div className="max-w-7xl sm:px-6 lg:px-8 mx-auto px-4">
+        <div className="max-w-7xl sm:px-4 lg:px-8 mx-auto px-2">
           <div className="text-left ">
             <h2 className="text-3xl md:text-4xl font-bold text-white px-4 max-w-2xl mb-12">
               Recognize contributions.
@@ -389,7 +430,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-row-1 gap-1">
+          <div className="grid grid-cols-1 gap-2 md:grid-row-1 text-xl">
             {[
               {
                 icon: (
@@ -435,9 +476,9 @@ export default function Home() {
                   <Image
                     src="/images/blockk.png"
                     alt="Post Tasks & Bounties"
-                    width={12}
-                    height={12}
-                    className="w-6 h-6 object-cover rounded-lg"
+                    width={40}
+                    height={40}
+                    className="w-6 h-6 object-cover "
                   />
                 ),
                 title:
@@ -458,8 +499,8 @@ export default function Home() {
       </section>
 
       {/* Community Building Section */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-10 sm:py-16 md:py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-4 lg:px-8">
           <div className="text-left mb-12">
             <p className="mb-4 text-[#E04E1E]">Who Is It For?</p>
             <h2 className="text-3xl md:text-4xl max-w-xl font-bold text-[#282828]">
@@ -467,14 +508,14 @@ export default function Home() {
               Community
             </h2>
           </div>
-          <div className="grid md:grid-cols-2 text-center lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 text-center">
             <div className="flex flex-col items-center">
               <Image
                 src="/images/1.png"
                 alt="Creators & Event Organizers"
                 width={200}
                 height={160}
-                className="w-full h-40 object-cover rounded-lg shadow-md mb-4"
+                className="w-full max-w-xl h-32 sm:h-40 object-cover rounded-lg shadow-md mb-4"
               />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Creators & Event <br className="hidden md:block" />
@@ -487,7 +528,7 @@ export default function Home() {
                 alt="Creators & Event Organizers"
                 width={200}
                 height={160}
-                className="w-full h-40 object-cover rounded-lg shadow-md mb-4"
+                className="w-full max-w-xl h-32 sm:h-40 object-cover rounded-lg shadow-md mb-4"
               />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Companies & <br className="hidden md:block" /> Founders
@@ -499,7 +540,7 @@ export default function Home() {
                 alt="Creators & Event Organizers"
                 width={200}
                 height={160}
-                className="w-full h-40 object-cover rounded-lg shadow-md mb-4"
+                className="w-full max-w-xl h-32 sm:h-40 object-cover rounded-lg shadow-md mb-4"
               />
               <h3 className="text-lg text-center font-semibold text-gray-900 mb-2">
                 Ecosystem Builders & Community Managers
@@ -511,7 +552,7 @@ export default function Home() {
                 alt="Creators & Event Organizers"
                 width={200}
                 height={160}
-                className="w-full h-40 object-cover rounded-lg shadow-md mb-4"
+                className="w-full max-w-xl h-32 sm:h-40 object-cover rounded-lg shadow-md mb-4"
               />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Marketers{" "}
@@ -522,27 +563,31 @@ export default function Home() {
       </section>
 
       {/* Web3 Ready Section */}
-      <section className="py-16 md:py-24 bg-[#476D8F]" id="waitlist-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <section
+        className="py-10 sm:py-16 md:py-24 bg-[#476D8F]"
+        id="waitlist-section"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-4 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 md:gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                Traditional-
-                <br className="hidden md:block" />
-                Friendly. <br className="hidden md:block" /> Web3-Ready.
+              <h2 className="text-3xl md:text-4xl leading-loose font-bold text-white ">
+                Traditional Friendly.
+                 <br className="hidden md:block" /> Web3 Ready.
               </h2>
             </div>
-            <div className="relative">
+            <div className="relative lg:mt-0">
               <p
-                className="text-1xl text-left text-blue-100 mb-8"
+                className="text-xl text-left text-blue-100 mb-8"
                 style={{ maxWidth: "500px" }}
               >
-                Use only what fits your audience. BlocStage works beautifully as
-                a traditional event tool — and opens up next-gen engagement when
+                Use only what fits your audience. 
+				<br /> <br/>
+				BlocStage works beautifully as
+                a traditional event tool and opens up next-gen engagement when
                 you&#39;re ready.
               </p>
               <form onSubmit={handleSubmit}>
-                <div className="flex w-full max-w-md bg-white rounded-lg border border-gray-300 shadow-sm overflow-hidden">
+                <div className="flex flex-col sm:flex-row w-full max-w-md bg-white rounded-lg border border-gray-300 shadow-sm overflow-hidden">
                   <input
                     type="email"
                     placeholder="Enter your email"
@@ -552,7 +597,7 @@ export default function Home() {
                     required
                   />
                   <Button
-                    className="bg-[#E04E1E] hover:bg-orange-600 text-white px-6 py-6 rounded-lg text-base font-semibold shadow-none transition"
+                    className="bg-[#E04E1E] hover:bg-orange-600 text-white px-6 py-4 sm:py-6 rounded-lg text-base font-semibold shadow-none transition w-full sm:w-auto"
                     type="submit"
                     style={{ minWidth: "auto" }}
                     disabled={submissionStatus === "loading"}
@@ -564,7 +609,7 @@ export default function Home() {
                 </div>
                 {submissionStatus === "success" && (
                   <p className="mt-4 text-white text-sm">
-                    🎉 You've successfully joined the waitlist!
+                    🎉 You&apos;ve successfully joined the waitlist!
                   </p>
                 )}
                 {submissionStatus === "error" && (
@@ -579,23 +624,23 @@ export default function Home() {
       </section>
 
       {/* All-in-One Platform Section */}
-      <section className="py-16 md:py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          <div className="mb-12 max-w-md text-left">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+      <section className="py-10 sm:py-16 md:py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+          <div className="mb-8 sm:mb-12 max-w-md text-left">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
               Ditch the Tool Stack
               <br className="hidden md:block" />— BlocStage Has It All
             </h2>
           </div>
 
-          <div className="mx-auto max-w-1xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-8">
+          <div className="mx-2 max-w-4xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-y-4 sm:gap-y-6 gap-x-8 sm:gap-x-8">
             {platformFeatures.map((feature, idx) => (
               <div key={idx} className="flex items-center space-x-3">
                 <Image
                   src="/images/Icon.png"
                   alt=""
-                  width={24}
-                  height={24}
+                  width={34}
+                  height={34}
                   className="w-6 h-6 object-cover"
                 />
                 <span className="font-semibold text-gray-900">{feature}</span>
@@ -606,37 +651,41 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#092C4C] text-white py-12">
+      <footer className="bg-[#092C4C] text-white py-8 sm:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
             <div>
-              <div className="flex gap-10 items-center space-x-3 mb-2">
-                <Image
-                  src="./images/blocsagelogo.png"
-                  alt="BlocStage blocsagelogo"
-                  width={56}
-                  height={56}
-                  className="w-18 h-18 object-contain"
-                />
+              <div className="flex gap-4 sm:gap-10 items-center space-x-3 mb-2">
+              <Image
+                src="/images/blocsagelogo.png"
+                alt="BlocStage logo"
+                width={96}
+                height={96}
+                className="object-contain"
+                priority
+              />
               </div>
-              <p className="text-gray-200 text-lg">Catch Phrase here</p>
+              <p className="text-gray-200 mt-5 text-sm sm:text-sm">
+                More than events, it&apos;s an ecosystem.
+              </p>
             </div>
-
-            <div className="flex flex-col space-y-6 md:space-y-0 md:items-start">
-              <h4 className="text-lg font-semibold mb-4">Follow Us</h4>
-              <div className="flex items-center space-x-6 md:space-x-2 flex-wrap ">
+            <div className="flex flex-col space-y-4 sm:space-y-6 md:space-y-0 md:items-start">
+              <h4 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">
+                Follow Us
+              </h4>
+              <div className="flex flex-wrap items-center space-x-4 sm:space-x-6 md:space-x-6">
                 <a
                   href="#"
                   className="flex items-center space-x-2 text-gray-300 hover:text-white"
                 >
-                  <Image
+                  {/* <Image
                     src="/images/facebook.png"
                     alt="Facebook"
                     width={15}
                     height={15}
                     className="w-2 h-4"
-                  />
-                  <span>Facebook</span>
+                  /> */}
+                  <span>Telegram</span>
                 </a>
                 <a
                   href="#"
@@ -680,10 +729,10 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <hr className="border-gray-600 my-8" />
-          <div className="flex flex-col md:flex-row items-center justify-between text-gray-300 text-sm space-y-4 md:space-y-0">
+          <hr className="border-gray-600 my-6 sm:my-8" />
+          <div className="flex flex-col md:flex-row items-center justify-between text-gray-300 text-xs sm:text-sm space-y-2 sm:space-y-4 md:space-y-0">
             <div>© 2025 BlocStage. All rights reserved.</div>
-            <div className="flex space-x-6">
+            <div className="flex space-x-4 sm:space-x-6">
               <a href="#" className="hover:underline">
                 Privacy Policy
               </a>

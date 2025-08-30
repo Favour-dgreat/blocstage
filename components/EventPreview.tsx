@@ -1,9 +1,8 @@
 "use client";
 
-import { Calendar, Clock, MapPin, Users } from 'lucide-react';
+import { Calendar, Clock, MapPin,  } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-
 interface EventPreviewProps {
   data: any;
   onBack: () => void;
@@ -33,26 +32,8 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center text-sm text-gray-500">
-          <span className="text-orange-500">Event</span>
-          <span className="mx-2">/</span>
-          <span>Preview Event</span>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="px-6" onClick={onBack}>
-            Edit
-          </Button>
-          <Button 
-            onClick={onPublish}
-            className="px-6 bg-[#092C4C] text-white hover:bg-[#092C4C]"
-          >
-            Publish
-          </Button>
-        </div>
-      </div>
+    <div className="max-w-6xl">
+         
 
       {/* Event Preview */}
       <div className="bg-white rounded-lg overflow-hidden">
@@ -73,7 +54,7 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
           )}
         </div>
 
-        <div className="p-8">
+        <div className="p-4 md:p-6">
           {/* Event Title */}
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
             {data.title || 'BTS Watch Party: Purple Night Edition'}
@@ -192,15 +173,15 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
       {/* Navigation */}
       <div className="flex justify-between mt-8">
         <Button
-          variant="outline"
-          onClick={onBack}
-          className="px-6 py-2"
-        >
-          Back
-        </Button>
+  variant="ghost"
+  onClick={onBack}
+  className="px-6 py-2 bg-transparent text-[#092C4C] hover:bg-gray-100 shadow-none"
+>
+  Edit 
+</Button>
         <Button
           onClick={onPublish}
-          className="px-8 py-2 bg-orange-500 text-white hover:bg-orange-600"
+          className="px-6 py-2 bg-[#092C4C] text-white hover:bg-[#092C4C]"
         >
           Publish Event
         </Button>

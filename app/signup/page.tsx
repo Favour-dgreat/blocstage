@@ -56,7 +56,7 @@ const SignupPage = () => {
       // Handle successful registration
       sessionStorage.setItem("registeredUserName", userName);
       sessionStorage.setItem("registeredEmail", email);
-      router.push("/verify-email"); // Redirect to OTP page
+      router.push("/verify-account"); // Redirect to OTP page
       console.log(userName);
     } else {
       // Handle errors from the API
@@ -254,7 +254,7 @@ const SignupPage = () => {
           <option value="Burkina Faso">Burkina Faso</option>
           <option value="Niger">Niger</option>
           <option value="Liberia">Liberia</option>
-          <option value="Cote d'Ivoire">Cote d'Ivoire</option>
+          <option value="Cote d&#39;Ivoire">Cote d&#39;Ivoire</option>
           <option value="Benin">Benin</option>
           <option value="Tanzania">Tanzania</option>
           <option value="Kenya">Kenya</option>

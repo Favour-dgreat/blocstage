@@ -77,145 +77,143 @@ export default function AgendaScheduleForm({
   };
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold text-[#092C4C] mb-2">
-        Agenda 
-      </h2>
-      <p className="text-sm text-[#4F4F4F] mb-8">Set up your agenda of the day</p>
+  <div>
+    <h2 className="text-xl font-semibold text-[#092C4C] mb-2">
+      Agenda 
+    </h2>
+    <p className="text-sm text-[#4F4F4F] mb-8">Set up your agenda of the day</p>
 
-      <div className="space-y-6 flex flex-col gap-4 ">
-        {sessions.map((session, index) => (
-          <div key={session.id} className="rounded-lg ">
-            <h2 className="text-sm font-light text-[#121111] mb-6">
-              Agenda & Schedule
-            </h2>
+    <div className="space-y-6 flex flex-col gap-4">
+      {sessions.map((session, index) => (
+        <div key={session.id} className="rounded-lg">
+          <h2 className="text-sm font-light text-[#121111] mb-6">
+            Agenda & Schedule
+          </h2>
 
-            <div className="grid grid-cols-3 lg:grid-cols-3 gap-4 mb-4">
-              {/* Title */}
-              <div>
-                <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
-                  Session title
-                </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+                Session title
+              </label>
+              <Input
+                value={session.title}
+                onChange={(e) =>
+                  updateSession(session.id, "title", e.target.value)
+                }
+                placeholder={
+                  index === 0 ? "Welcome & Introductions" : "Session Name"
+                }
+                className="w-full"
+              />
+            </div>
+
+            {/* Start Time */}
+            <div>
+              <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+                Session Start
+              </label>
+              <div className="relative">
                 <Input
-                  value={session.title}
+                  type="text"
+                  placeholder="Pick time"
+                  onFocus={(e) => (e.target.type = "time")}
+                  value={session.start_time}
                   onChange={(e) =>
-                    updateSession(session.id, "title", e.target.value)
-                  }
-                  placeholder={
-                    index === 0 ? "Welcome & Introductions" : "Session Name"
+                    updateSession(session.id, "start_time", e.target.value)
                   }
                   className="w-full"
                 />
               </div>
+            </div>
 
-              {/* Start Time */}
-              <div>
-                <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
-                  Session Start
-                </label>
-                <div className="relative">
-                  <Input
-                    type="text"
-                    placeholder="Pick time"
-                    onFocus={(e) => (e.target.type = "time")}
-                    value={session.start_time} // Changed to start_time
-                    onChange={(e) =>
-                      updateSession(session.id, "start_time", e.target.value)
-                    }
-                    className="w-full"
-                  />
-                  {/* <Clock className="absolute right-3 top-3 h-4 w-4 text-gray-400 pointer-events-none" /> */}
-                </div>
-              </div>
-
-              {/* End Time */}
-              <div>
-                <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
-                  Session End
-                </label>
-                <div className="relative">
-                  <Input
-                    type="text"
-                    placeholder="Pick time"
-                    onFocus={(e) => (e.target.type = "time")}
-                    value={session.end_time} // Changed to end_time
-                    onChange={(e) =>
-                      updateSession(session.id, "end_time", e.target.value)
-                    }
-                    className="w-full"
-                  />
-                </div>
-              </div>
-
-              {/* Speaker */}
-              <div>
-                <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
-                  Speaker
-                </label>
-                <div className="relative">
-                  <Input
-                    type="text"
-                    value={session.speaker_name} 
-                    onChange={(e) =>
-                      updateSession(session.id, "speaker_name", e.target.value)
-                    }
-                    placeholder="Chioma Chiboo Ibekwe"
-                    className="w-full"
-                  />
-                </div>
+            {/* End Time */}
+            <div>
+              <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+                Session End
+              </label>
+              <div className="relative">
+                <Input
+                  type="text"
+                  placeholder="Pick time"
+                  onFocus={(e) => (e.target.type = "time")}
+                  value={session.end_time}
+                  onChange={(e) =>
+                    updateSession(session.id, "end_time", e.target.value)
+                  }
+                  className="w-full"
+                />
               </div>
             </div>
 
-            {/* Switch & Remove Button */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-light text-[#282828]">
-                  Assign Speaker
-                </p>
-                {/* Removed Switch as it's not in API */}
+            {/* Speaker (full width on mobile, last column on desktop) */}
+            <div className="md:col-span-2 lg:col-span-1">
+              <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+                Speaker
+              </label>
+              <div className="relative">
+                <Input
+                  type="text"
+                  value={session.speaker_name}
+                  onChange={(e) =>
+                    updateSession(session.id, "speaker_name", e.target.value)
+                  }
+                  placeholder="Chioma Chiboo Ibekwe"
+                  className="w-full"
+                />
               </div>
-              {sessions.length > 1 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeSession(session.id)}
-                  className="bg-[#EB5757] text-white hover:text-red-700 hover:bg-red-50"
-                >
-                  Remove Session
-                </Button>
-              )}
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Footer */}
-      <div className="mt-8 flex items-center justify-between">
-        <Button
-          variant="outline"
-          onClick={addNewSession}
-          className="flex items-center gap-2 text-[#092C4C] text-xs font-light border-[#DBEBFB] bg-[#DBEBFB] hover:bg[#092C4C]"
-        >
-          Add new agenda
-        </Button>
-
-        <div className="bb flex items-center gap-4">
-          {showSkip && (
-            <Button variant="ghost" onClick={onNext} className="text-gray-500">
-              Skip this step
-            </Button>
-          )}
-          <Button
-            onClick={onNext}
-            disabled={!nextEnabled}
-            className={`px-8 py-2 text-white ${
-              nextEnabled ? "bg-[#092C4C] hover:bg-[#092C4C]" : "bg-gray-400"
-            }`}
-          >
-            Next
-          </Button>
+          {/* Switch & Remove Button */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-light text-[#282828]">
+                Assign Speaker
+              </p>
+            </div>
+            {sessions.length > 1 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeSession(session.id)}
+                className="bg-[#EB5757] text-white hover:text-red-700 hover:bg-red-50"
+              >
+                Remove Session
+              </Button>
+            )}
+          </div>
         </div>
+      ))}
+    </div>
+
+    {/* Footer */}
+    <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <Button
+        variant="outline"
+        onClick={addNewSession}
+        className="flex items-center gap-2 text-[#092C4C] text-xs font-light border-[#DBEBFB] bg-[#DBEBFB] hover:bg[#092C4C] w-full md:w-auto"
+      >
+        Add new agenda
+      </Button>
+
+      <div className="bb flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+        {showSkip && (
+          <Button variant="ghost" onClick={onNext} className="text-gray-500 w-full md:w-auto">
+            Skip this step
+          </Button>
+        )}
+        <Button
+          onClick={onNext}
+          disabled={!nextEnabled}
+          className={`px-8 py-2 text-white w-full md:w-auto ${
+            nextEnabled ? "bg-[#092C4C] hover:bg-[#092C4C]" : "bg-gray-400"
+          }`}
+        >
+          Next
+        </Button>
       </div>
     </div>
-  );
+  </div>
+);
 }

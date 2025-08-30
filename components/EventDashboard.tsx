@@ -59,10 +59,10 @@ const EventDashboard = () => {
   }
 
   return (
-    <div className="ml-64 max-w-6xl mx-auto px-8 py-8 min-h-screen p-8">
+    <div className="max-w-6xl mx-auto px-8 py-8 min-h-screen p-8 ml-0 md:ml-64">
       {/* Header section from the image */}
       <div className="flex flex-row justify-between items-center mb-8">
-        <h1 className="text-1xl font-bold text-[#282828]">Event</h1>
+        <h1 className="text-1xl font-bold text-[#282828]">Event </h1>
         <div className="bg-[#E4F0FC] p-2 rounded-md cursor-pointer">
         <Bell className="w-6 h-5 text-[#092C4C]" />
         </div>
