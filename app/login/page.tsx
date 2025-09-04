@@ -22,7 +22,7 @@ const LoginPage = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
-  const {  email, password,  } = form;
+  const { email, password, } = form;
 
   
 
@@ -35,7 +35,6 @@ const LoginPage = () => {
       body: JSON.stringify({
         email,
         password,
-        
       }),
     });
 
@@ -43,8 +42,8 @@ const LoginPage = () => {
       const data = await response.json();
       const token = data.token;
       localStorage.setItem("authToken", token);
-      // Handle successful registration
-      router.push("/viewevent"); // Redirect to OTP page
+      
+      router.push("/viewevent"); 
     } else {
       // Handle errors from the API
       const errorData = await response.json();

@@ -6,7 +6,7 @@ import Header from "@/components/Header";
 const viewEvent = () => {
   return (
     <div className="flex min-h-screen">
-        <Header />
+        
         <div className="hidden md:block">
           <Sidebar />
         </div>

@@ -167,11 +167,7 @@ export default function AgendaScheduleForm({
 
           {/* Switch & Remove Button */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-light text-[#282828]">
-                Assign Speaker
-              </p>
-            </div>
+            
             {sessions.length > 1 && (
               <Button
                 variant="ghost"

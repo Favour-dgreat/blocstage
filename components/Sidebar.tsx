@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Settings, GitBranch, Trophy, Ticket } from 'lucide-react';
+import { CalendarDays, Settings, UserPen, Trophy, Ticket } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from "next/image";
 
@@ -12,7 +12,7 @@ const menuItems = [
 
 const sectionItems = [
   { icon: Settings, title: 'Settings' },
-  { icon: GitBranch, title: 'Integration' },
+  { icon: UserPen, title: 'Edit Profile' },
 ];
 export default function Sidebar() {
   return (

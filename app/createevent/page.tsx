@@ -6,7 +6,7 @@ const eventPage = () => {
   return (
     <div className="flex min-h-screen">
       
-       <Header />
+       {/* <Header /> */}
      
       <div className="hidden md:block">
       <Sidebar />

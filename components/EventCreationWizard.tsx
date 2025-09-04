@@ -27,7 +27,7 @@ export default function EventCreationWizard() {
     end_time: "",
     isOnline: false,
     image: null,
-    category: "",
+    category: [],
     tags: [],
     sessions: [
       {
@@ -40,6 +40,7 @@ export default function EventCreationWizard() {
     ],
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); 
   const router = useRouter();
 
   const handleNext = () => {
@@ -91,7 +92,8 @@ const uploadImageToCloudinary = async (imageFile:any) => {
     throw error;
   }
 };
-  const handlePublish = async () => {
+   const handlePublish = async () => {
+     setIsLoading(true); 
     try {
       const authToken = localStorage.getItem("authToken");
 
@@ -101,9 +103,8 @@ const uploadImageToCloudinary = async (imageFile:any) => {
       }
 
       // 1. Handle image upload to Cloudinary
-      let imageUrl = eventData.image; // Assume it's a URL by default
+      let imageUrl = eventData.image; 
 
-      // Check if eventData.image is a file object (not a string)
       if (eventData.image && typeof eventData.image !== 'string') {
         try {
           imageUrl = await uploadImageToCloudinary(eventData.image);
@@ -121,10 +122,10 @@ const uploadImageToCloudinary = async (imageFile:any) => {
         location: eventData.location,
         start_time: eventData.start_time,
         end_time: eventData.end_time,
-        category: eventData.category,
-        // event_type: eventData.isOnline, // Re-enable this if needed
+        category: eventData.category, // This is already an array from state
+        // event_type: eventData.isOnline,
         tags: eventData.tags,
-        banner_image_url: imageUrl, // Use the new image URL here
+        banner_image_url: imageUrl, 
         sessions: eventData.sessions.map((session, index) => {
           const sessionStartTime = `${eventDate}T${session.start_time}:00Z`;
           const sessionEndTime = `${eventDate}T${session.end_time}:00Z`;
@@ -139,18 +140,31 @@ const uploadImageToCloudinary = async (imageFile:any) => {
         }),
       };
 
+      // Check if any category is selected and send the first one as a single string
+      // if the API is not updated to handle multiple categories.
+      // If the API now expects an array, the above is correct. 
+      // Based on the error, the API likely expects a single string.
+      const apiPayload = {
+        ...payload,
+        category: eventData.category.length > 0 ? eventData.category[0] : ""
+      };
+      
       const response = await fetch("https://api.blocstage.com/events", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(apiPayload), // Send the modified payload
       });
 
-      if (response.ok) {
-       setShowSuccessModal(true);
-        setCurrentStep(0);
+       if (response.ok) {
+        const responseData = await response.json();
+        const eventId = responseData.id; 
+
+        alert("Event published successfully!");
+        router.push(`/events/${eventId}`);
+        
         setEventData({
           title: "",
           description: "",
@@ -159,7 +173,7 @@ const uploadImageToCloudinary = async (imageFile:any) => {
           end_time: "",
           image: null,
           isOnline: false,
-          category: "",
+          category: [],
           tags: [],
           sessions: [
             {
@@ -171,26 +185,39 @@ const uploadImageToCloudinary = async (imageFile:any) => {
             },
           ],
         });
-         setTimeout(() => {
-          setShowSuccessModal(false);
-          router.push("/viewevent");
-        }, 60000);
       } else {
-        const errorData = await response.json();
-        console.log(payload);
-        console.error("Failed to publish event:", errorData);
-        alert(
-          `Failed to publish event: ${errorData.message || response.statusText}`
-        );
+        if (response.status === 401) {
+          alert("Session expired or unauthorized. Please log in to continue.");
+          router.push("/login"); 
+        } else if (response.status === 400) {
+          const errorData = await response.json();
+          alert(`Failed to publish event: ${errorData.message}`);
+        } else if (response.status === 404) {
+          alert("The event creation endpoint was not found.");
+        } else {
+          alert(`An error occurred: ${response.status} ${response.statusText}`);
+        }
+        
+        console.error(`Failed to publish event. Status: ${response.status}`);
       }
     } catch (error) {
       console.error("An error occurred:", error);
       alert("An error occurred while publishing the event. Please try again.");
-    }
+     } finally {
+    setIsLoading(false); 
+  }
   };
 
   return (
     <div className="md:ml-64 max-w-6xl mx-auto px-8 py-8">
+      {isLoading && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50">
+        <div className="flex flex-col items-center">
+          <div className="w-16 h-16 border-4 border-t-4 border-[#F4511E] border-gray-200 rounded-full animate-spin mb-4"></div>
+          <p className="text-white text-lg">Publishing your event...</p>
+        </div>
+      </div>
+    )}
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center">
