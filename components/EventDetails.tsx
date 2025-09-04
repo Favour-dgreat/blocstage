@@ -47,9 +47,27 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
       setLoading(true);
       setError(null); // Reset error on new fetch
       try {
-        const response = await fetch(`https://api.blocstage.com/events/${eventId}`);
+        const authToken = localStorage.getItem("authToken");
+        if (!authToken) {
+          setError("Please log in to view event details.");
+          window.location.href = "/login";
+          return;
+        }
+
+        const response = await fetch(`https://api.blocstage.com/events/${eventId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
         
         if (!response.ok) {
+          if (response.status === 401) {
+            setError("Authentication failed. Please log in again.");
+            window.location.href = "/login";
+            return;
+          }
           // Attempt to read error message from body if available
           const errorText = await response.text();
           throw new Error(`HTTP error! Status: ${response.status} - ${errorText}`);
@@ -123,12 +141,12 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
   const formattedEndTime = formatTime(eventData.end_time);
 
   return (
-    <div className="bg-[#F8F8F8] min-h-screen p-6 sm:p-8 md:p-12">
+    <div className="md:ml-64 max-w-6xl mx-auto px-8 py-8 bg-[#F8F8F8] min-h-screen p-6 sm:p-8 md:p-12">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Top Header Section (Back link and Bell icon) */}
         <div className="flex flex-col md:flex-row md:justify-between md:items-center">
           <div className="flex items-center space-x-2 text-sm text-gray-500 mb-4 md:mb-0">
-            <a href="/events" className="hover:underline">
+            <a href="/viewevent" className="hover:underline">
               Event
             </a>
             <span>/</span>
@@ -145,9 +163,13 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
             <h1 className="text-3xl font-bold text-[#282828] mb-4 lg:mb-0">
               {eventData.title}
             </h1>
-            <button className="bg-[#0C2D48] text-white px-6 py-3 rounded-md font-medium text-sm hover:bg-[#092C4C] transition-colors self-start lg:self-auto">
-              Edit Event Details
-            </button>
+            
+            <a href={`/edit-event/${eventData.id}`}>
+              <button className="bg-[#0C2D48] text-white px-6 py-3 rounded-md font-medium text-sm hover:bg-[#092C4C] transition-colors self-start lg:self-auto">
+                Edit Event Details
+              </button>
+            </a>
+          
           </div>
 
           {/* Event Info - Date, Time, Location */}
@@ -162,7 +184,7 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
             </div>
             <div className="flex items-start space-x-3">
               <MapPin className="w-5 h-5 text-gray-500 flex-shrink-0 mt-1" />
-              <span className="font-medium">{eventData.location}</span>
+              <span className="font-medium">{eventData.location || "Online Event"}</span>
             </div>
           </div>
 

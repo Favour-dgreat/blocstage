@@ -1,15 +1,15 @@
 import EventDetails from "@/components/EventDetails";
-import  {EventData} from "@/components/EventDetails"; 
 import Sidebar from"@/components/Sidebar";
 // import Header from "@/components/Header";
 import Image from "next/image";
 import React from "react";
 import ShareButton from "@/components/ShareButton";
+import { EventData } from "@/components/EventDetailsForm";
 
 // Define the props for the page component
 interface EventPageProps {
   params: {
-    id: string; // The dynamic part of the URL, e.g., /event/123 -> id = '123'
+    id: string; 
   };
 }
 

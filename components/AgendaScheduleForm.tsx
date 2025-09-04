@@ -9,10 +9,11 @@ import { Switch } from "@/components/ui/switch";
 interface Session {
   id: string;
   title: string;
-  start_time: string; // Renamed from startTime
-  end_time: string;   // Renamed from endTime
-  speaker_name: string; // Renamed from speaker
-  session_order: number; // New field
+  description: string;
+  start_time: string;
+  end_time: string;
+  speaker_name: string;
+  session_order: number;
 }
 
 interface AgendaScheduleFormProps {
@@ -50,6 +51,7 @@ export default function AgendaScheduleForm({
     const newSession: Session = {
       id: Date.now().toString(),
       title: "",
+      description: "",
       start_time: "",
       end_time: "",
       speaker_name: "",
@@ -70,7 +72,9 @@ export default function AgendaScheduleForm({
 
   const removeSession = (id: string) => {
     if (sessions.length > 1) {
-      const updatedSessions = sessions.filter((session) => session.id !== id);
+      const updatedSessions = sessions
+        .filter((session) => session.id !== id)
+        .map((session, index) => ({ ...session, session_order: index }));
       setSessions(updatedSessions);
       onUpdate({ sessions: updatedSessions });
     }
@@ -108,16 +112,16 @@ export default function AgendaScheduleForm({
               />
             </div>
 
-            {/* Start Time */}
+            {/* Start Date & Time */}
             <div>
               <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
                 Session Start
               </label>
               <div className="relative">
                 <Input
-                  type="text"
-                  placeholder="Pick time"
-                  onFocus={(e) => (e.target.type = "time")}
+                  type="datetime-local"
+                  step="1"
+                  placeholder="Pick date and time"
                   value={session.start_time}
                   onChange={(e) =>
                     updateSession(session.id, "start_time", e.target.value)
@@ -127,16 +131,16 @@ export default function AgendaScheduleForm({
               </div>
             </div>
 
-            {/* End Time */}
+            {/* End Date & Time */}
             <div>
               <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
                 Session End
               </label>
               <div className="relative">
                 <Input
-                  type="text"
-                  placeholder="Pick time"
-                  onFocus={(e) => (e.target.type = "time")}
+                  type="datetime-local"
+                  step="1"
+                  placeholder="Pick date and time"
                   value={session.end_time}
                   onChange={(e) =>
                     updateSession(session.id, "end_time", e.target.value)
@@ -201,9 +205,8 @@ export default function AgendaScheduleForm({
         )}
         <Button
           onClick={onNext}
-          disabled={!nextEnabled}
           className={`px-8 py-2 text-white w-full md:w-auto ${
-            nextEnabled ? "bg-[#092C4C] hover:bg-[#092C4C]" : "bg-gray-400"
+            "bg-[#092C4C] hover:bg-[#092C4C]" 
           }`}
         >
           Next

@@ -1,11 +1,11 @@
 "use client";
+
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import EventCreationWizard from "@/components/EventCreationWizard";
+import EditEventForm from "@/components/EditEventForm";
 import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
-
-const eventPage = () => {
+export const dynamic = "force-dynamic";
+const EditEventPage = ({ params }: { params: { id: string } }) => {
   const router = useRouter();
 
   useEffect(() => {
@@ -13,7 +13,7 @@ const eventPage = () => {
     const authToken = localStorage.getItem("authToken");
     
     if (!authToken) {
-      alert("Please log in to create an event.");
+      alert("Please log in to edit events.");
       router.push("/login");
       return;
     }
@@ -35,17 +35,14 @@ const eventPage = () => {
 
   return (
     <div className="flex min-h-screen">
-      
-       {/* <Header /> */}
-     
       <div className="hidden md:block">
-      <Sidebar />
+        <Sidebar />
       </div>
       <main className="flex-1 mt-12">
-        <EventCreationWizard />
+        <EditEventForm eventId={params.id} />
       </main>
     </div>
   );
-  };
-  
-  export default eventPage;
+};
+
+export default EditEventPage;

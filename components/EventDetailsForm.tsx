@@ -4,12 +4,13 @@ import { Calendar, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 
 // Event data type
 export interface EventData {
+  id?: string;
   title: string;
   description: string;
   location: string;
@@ -119,9 +120,50 @@ export default function EventDetailsForm({
   onUpdate,
   onNext,
 }: EventDetailsFormProps) {
-  const [localData, setLocalData] = useState<EventData>(data);
-  
-  const allCategories = ["Tech Event", "Conference", "Meetup", "Workshop", "Concert", "Art Exhibition", "Sports Event", "Web3 Event"];
+  const [localData, setLocalData] = useState<EventData>({
+    ...data,
+    category: Array.isArray(data.category) ? data.category : (data.category ? [data.category] : [])
+  });
+  const [userData, setUserData] = useState({ name: "User" });
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const authToken = localStorage.getItem("authToken");
+        if (!authToken) return;
+
+        const response = await fetch("https://api.blocstage.com/users/me", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        if (response.ok) {
+          const user = await response.json();
+          setUserData({
+            name: user.name || user.full_name || user.username || "User",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const allCategories = [
+    "Tech Event",
+    "Conference",
+    "Meetup",
+    "Workshop",
+    "Concert",
+    "Art Exhibition",
+    "Sports Event",
+    "Web3 Event"
+  ];
   const allTags = [
     "Music", "Networking", "Workshop", "Hackathon", "Codelab", "Web3", "Health",
     "Fitness", "Art", "Technology", "Education", "Business", "Startup", 
@@ -142,7 +184,7 @@ export default function EventDetailsForm({
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#092C4C] mb-2">Hi</h1>
+        <h1 className="text-2xl font-bold text-[#092C4C] mb-2">Hi {userData.name}!</h1>
         <p className="text-gray-600">
           Let&apos;s get your event up and running!
         </p>
@@ -207,7 +249,7 @@ export default function EventDetailsForm({
         </div>
       </div>
       
-      {/* Event Category (using the new TagInput component) */}
+      {/* Event Category (using the TagInput component) */}
       <TagInput
         label="Event Category"
         value={localData.category}

@@ -19,7 +19,7 @@ const steps = [
 
 export default function EventCreationWizard() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [eventData, setEventData] = useState({
+  const [eventData, setEventData] = useState<any>({
     title: "",
     description: "",
     location: "",
@@ -32,7 +32,6 @@ export default function EventCreationWizard() {
     sessions: [
       {
         title: "",
-        description: "",
         speaker_name: "",
         start_time: "",
         end_time: "",
@@ -56,156 +55,175 @@ export default function EventCreationWizard() {
   };
 
   const updateEventData = (data: any) => {
-    setEventData((prev) => ({ ...prev, ...data }));
+    setEventData((prev: any) => ({ ...prev, ...data }));
   };
 
   const handleStepClick = (index: number) => {
     setCurrentStep(index);
   };
-const uploadImageToCloudinary = async (imageFile:any) => {
-  const cloudName = "dsohqp4d9";
-  const unsignedUploadPreset = "blocstage"; 
+ const uploadImageToCloudinary = async (imageFile: File) => {
+    const cloudName = "dsohqp4d9"; // Your Cloudinary cloud name
+    const unsignedUploadPreset = "blocstage"; // Your upload preset
 
-  const formData = new FormData();
-  formData.append("file", imageFile);
-  formData.append("upload_preset", unsignedUploadPreset);
+    const formData = new FormData();
+    formData.append("file", imageFile);
+    formData.append("upload_preset", unsignedUploadPreset);
 
-  try {
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
-      {
-        method: "POST",
-        body: formData,
+    try {
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Cloudinary upload failed:", errorData);
+        throw new Error(errorData.error?.message || "Cloudinary upload failed");
       }
-    );
 
-    if (response.ok) {
       const data = await response.json();
-      return data.secure_url; 
-    } else {
-      const errorData = await response.json();
-      console.error("Cloudinary upload failed:", errorData);
-      throw new Error("Cloudinary upload failed");
+      return data.secure_url;
+    } catch (error) {
+      console.error("Error during Cloudinary upload:", error);
+      throw error;
     }
-  } catch (error) {
-    console.error("An error occurred during Cloudinary upload:", error);
-    throw error;
-  }
-};
-   const handlePublish = async () => {
-     setIsLoading(true); 
+  };
+     const handlePublish = async () => {
+    setIsLoading(true);
+
     try {
       const authToken = localStorage.getItem("authToken");
-
       if (!authToken) {
         alert("Authentication token not found. Please log in.");
+        window.location.href = "/login";
         return;
       }
 
-      // 1. Handle image upload to Cloudinary
-      let imageUrl = eventData.image; 
+      // 1. Upload image if it's a File
+      let imageUrl = eventData.image;
+      if (eventData.image && typeof eventData.image === "object" && (eventData.image as any) instanceof File) {
+  try {
+    imageUrl = await uploadImageToCloudinary(eventData.image);
+  } catch (error) {
+    alert("Failed to upload image. Please try again.");
+    return;
+  }
+}
 
-      if (eventData.image && typeof eventData.image !== 'string') {
-        try {
-          imageUrl = await uploadImageToCloudinary(eventData.image);
-        } catch (error) {
-          alert("Failed to upload image. Please try again.");
-          return;
-        }
+      // 3. Build sessions payload
+      const sessionsPayload = eventData.sessions
+        .filter((session: any) => session.title && session.title.trim()) // Only include sessions with titles
+        .map((session: any, index: number) => ({
+          title: session.title?.trim() || "",
+          start_time: session.start_time ? session.start_time : "",
+          end_time: session.end_time ? session.end_time : "",
+          speaker_name: session.speaker_name?.trim() || "",
+          session_order: index,
+        }));
+
+      // 4. Validate required fields
+      if (!eventData.title.trim()) {
+        alert("Event title is required");
+        return;
+      }
+      if (!eventData.description.trim()) {
+        alert("Event description is required");
+        return;
+      }
+      if (!eventData.location.trim()) {
+        alert("Event location is required");
+        return;
+      }
+      if (!eventData.start_time) {
+        alert("Event start time is required");
+        return;
+      }
+      if (!eventData.end_time) {
+        alert("Event end time is required");
+        return;
       }
 
-      const eventDate = eventData.start_time.split("T")[0]; 
-
+      // 5. Build final payload
       const payload = {
-        title: eventData.title,
-        description: eventData.description,
-        location: eventData.location,
-        start_time: eventData.start_time,
-        end_time: eventData.end_time,
-        category: eventData.category, // This is already an array from state
-        // event_type: eventData.isOnline,
-        tags: eventData.tags,
-        banner_image_url: imageUrl, 
-        sessions: eventData.sessions.map((session, index) => {
-          const sessionStartTime = `${eventDate}T${session.start_time}:00Z`;
-          const sessionEndTime = `${eventDate}T${session.end_time}:00Z`;
-
-          return {
-            title: session.title,
-            start_time: sessionStartTime,
-            end_time: sessionEndTime,
-            speaker_name: session.speaker_name,
-            session_order: index,
-          };
-        }),
+        title: eventData.title?.trim() || "",
+        description: eventData.description?.trim() || "",
+        location: eventData.location?.trim() || "",
+        start_time: eventData.start_time || "",
+        end_time: eventData.end_time || "",
+        category: Array.isArray(eventData.category) && eventData.category.length > 0 ? eventData.category[0] : "",
+        tags: Array.isArray(eventData.tags) ? eventData.tags : [],
+        image_url: imageUrl || null,
+        sessions: sessionsPayload,
       };
 
-      // Check if any category is selected and send the first one as a single string
-      // if the API is not updated to handle multiple categories.
-      // If the API now expects an array, the above is correct. 
-      // Based on the error, the API likely expects a single string.
-      const apiPayload = {
-        ...payload,
-        category: eventData.category.length > 0 ? eventData.category[0] : ""
-      };
-      
+      console.log("Final payload being sent:", payload);
+
+      // 6. Validate JSON serialization and clean data
+      try {
+        // Remove any undefined values and ensure all values are serializable
+        const cleanPayload = JSON.parse(JSON.stringify(payload, (key, value) => {
+          if (value === undefined) return null;
+          if (typeof value === 'string' && value.trim() === '') return null;
+          return value;
+        }));
+        
+        console.log("Cleaned payload:", cleanPayload);
+        const jsonString = JSON.stringify(cleanPayload);
+        console.log("JSON payload:", jsonString);
+        
+        // Update payload with cleaned version
+        Object.assign(payload, cleanPayload);
+      } catch (error) {
+        console.error("JSON serialization error:", error);
+        alert("Error preparing data for submission. Please check all fields and try again.");
+        return;
+      }
+
+      // 7. Send event creation request
       const response = await fetch("https://api.blocstage.com/events", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify(apiPayload), // Send the modified payload
+        body: JSON.stringify(payload),
       });
 
-       if (response.ok) {
-        const responseData = await response.json();
-        const eventId = responseData.id; 
-
-        alert("Event published successfully!");
-        router.push(`/events/${eventId}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Event creation error response:", errorText);
+        console.error("Request payload:", JSON.stringify(payload, null, 2));
+        console.error("Response status:", response.status);
+        console.error("Response headers:", Object.fromEntries(response.headers.entries()));
         
-        setEventData({
-          title: "",
-          description: "",
-          location: "",
-          start_time: "",
-          end_time: "",
-          image: null,
-          isOnline: false,
-          category: [],
-          tags: [],
-          sessions: [
-            {
-              title: "",
-              description: "",
-              speaker_name: "",
-              start_time: "",
-              end_time: "",
-            },
-          ],
-        });
-      } else {
         if (response.status === 401) {
-          alert("Session expired or unauthorized. Please log in to continue.");
-          router.push("/login"); 
-        } else if (response.status === 400) {
-          const errorData = await response.json();
-          alert(`Failed to publish event: ${errorData.message}`);
-        } else if (response.status === 404) {
-          alert("The event creation endpoint was not found.");
-        } else {
-          alert(`An error occurred: ${response.status} ${response.statusText}`);
+          alert("Authentication failed. Please log in again.");
+          window.location.href = "/login";
+          return;
         }
         
-        console.error(`Failed to publish event. Status: ${response.status}`);
+        alert(`Failed to publish event: ${response.status} ${response.statusText}\n\nError details: ${errorText}`);
+        throw new Error(
+          `Failed to publish event: ${response.status} ${response.statusText}`
+        );
       }
-    } catch (error) {
-      console.error("An error occurred:", error);
-      alert("An error occurred while publishing the event. Please try again.");
-     } finally {
-    setIsLoading(false); 
-  }
+
+      const responseData = await response.json();
+      console.log("Event created successfully:", responseData);
+
+      alert("Event published successfully!");
+      router.push(`/events/${responseData.id}`);
+
+      
+    } catch (error: any) {
+      console.error("Error publishing event:", error);
+      alert(error.message || "An error occurred while publishing the event.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -290,7 +308,7 @@ const uploadImageToCloudinary = async (imageFile:any) => {
           {currentStep === 0 && (
             
             <EventDetailsForm
-              data={eventData}
+              data={eventData as any}
               onUpdate={updateEventData}
               onNext={handleNext}
             />
