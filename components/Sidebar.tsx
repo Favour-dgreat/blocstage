@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { CalendarDays,  UserPen, Trophy, Ticket, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from "next/image";
@@ -27,6 +28,7 @@ export default function Sidebar() {
     email: "Loading...",
   });
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -38,7 +40,7 @@ export default function Sidebar() {
             email: "Not logged in",
           });
           setIsLoading(false);
-          window.location.href = "/login";
+          router.push("/login");
           return;
         }
 
@@ -54,9 +56,9 @@ export default function Sidebar() {
         if (response.ok) {
           const user = await response.json();
           setUserData({
-            name: user.name || user.full_name || user.username || "User",
+            name: user.name || user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || "User",
             email: user.email || "No email",
-            avatar: user.avatar || user.profile_picture,
+            avatar: user.avatar || user.profile_picture || user.profile_picture_url,
           });
         } else {
           // Fallback to stored user data or default
@@ -82,9 +84,9 @@ export default function Sidebar() {
         if (storedUserData) {
           const user = JSON.parse(storedUserData);
           setUserData({
-            name: user.name || user.full_name || user.username || "User",
+            name: user.name || user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || "User",
             email: user.email || "No email",
-            avatar: user.avatar || user.profile_picture,
+            avatar: user.avatar || user.profile_picture || user.profile_picture_url,
           });
         } else {
           setUserData({
@@ -114,7 +116,7 @@ export default function Sidebar() {
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userData");
-    window.location.href = "/login";
+    router.push("/login");
   };
 
   return (
@@ -165,7 +167,7 @@ export default function Sidebar() {
               return (
                 <div
                   key={index}
-                  onClick={item.title === 'Logout' ? handleLogout : undefined}
+                  onClick={item.title === 'Logout' ? handleLogout : item.title === 'Edit Profile' ? () => router.push('/edit-profile') : undefined}   
                   className="flex items-center justify-between px-3 py-4 rounded-lg cursor-pointer font-light text-[#282828] hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">

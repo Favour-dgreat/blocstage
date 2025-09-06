@@ -1,6 +1,7 @@
 "use client"; 
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   MapPin,
   CalendarDays,
@@ -41,6 +42,7 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('Upcoming'); // Matches the initial state in the image
+  const router = useRouter();
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -50,7 +52,7 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
         const authToken = localStorage.getItem("authToken");
         if (!authToken) {
           setError("Please log in to view event details.");
-          window.location.href = "/login";
+          router.push("/login");
           return;
         }
 
@@ -65,7 +67,7 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
         if (!response.ok) {
           if (response.status === 401) {
             setError("Authentication failed. Please log in again.");
-            window.location.href = "/login";
+            router.push("/login");
             return;
           }
           // Attempt to read error message from body if available

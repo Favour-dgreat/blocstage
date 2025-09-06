@@ -57,7 +57,6 @@ const SignupPage = () => {
       sessionStorage.setItem("registeredUserName", userName);
       sessionStorage.setItem("registeredEmail", email);
       router.push("/verify-account"); // Redirect to OTP page
-      console.log(userName);
     } else {
       // Handle errors from the API
       const errorData = await response.json();

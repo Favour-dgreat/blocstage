@@ -9,11 +9,14 @@ import {
 
 import SpeakerCard from "@/components/SpeakerCard";
 import ShareButton from "@/components/ShareButton";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 type Session = {
   title: string;
   start_time: string;
   end_time: string;
   speaker_name: string;
+  image_url?: string;
 };
 
 type EventData = {
@@ -23,9 +26,27 @@ type EventData = {
   location: string;
   start_time: string;
   end_time: string;
-  banner_image_url: string;
+  image_url?: string;
   sessions: Session[];
 };
+
+// Function to fetch sessions from the sessions endpoint
+async function fetchEventSessions(eventId: string): Promise<Session[]> {
+  try {
+    const response = await fetch(`https://api.blocstage.com/events/${eventId}/sessions`);
+    
+    if (!response.ok) {
+      console.warn(`Failed to fetch sessions for event ${eventId}:`, response.status);
+      return [];
+    }
+    
+    const sessions = await response.json();
+    return Array.isArray(sessions) ? sessions : [];
+  } catch (error) {
+    console.error(`Error fetching sessions for event ${eventId}:`, error);
+    return [];
+  }
+}
 
 export async function generateStaticParams() {
   const response = await fetch('https://api.blocstage.com/events');
@@ -38,9 +59,13 @@ export async function generateStaticParams() {
 export default async function EventPage({ params }: { params: { id: string } }) {
   const { id } = params;
   
-  const response = await fetch(`https://api.blocstage.com/events/${id}`);
+  // Fetch event data and sessions in parallel
+  const [eventResponse, sessions] = await Promise.all([
+    fetch(`https://api.blocstage.com/events/${id}`),
+    fetchEventSessions(id)
+  ]);
   
-  if (!response.ok) {
+  if (!eventResponse.ok) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <p className="text-red-500">Event not found.</p>
@@ -48,7 +73,14 @@ export default async function EventPage({ params }: { params: { id: string } }) 
     );
   }
   
-  const event: EventData = await response.json();
+  const event: EventData = await eventResponse.json();
+  
+  // Use sessions from the dedicated endpoint instead of event.sessions
+  const eventWithSessions = {
+    ...event,
+    sessions: sessions
+  };
+
 
   const startDate = new Date(event.start_time);
   const endDate = new Date(event.end_time);
@@ -73,59 +105,70 @@ export default async function EventPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="min-h-screen bg-gray-50">
+                <Header/>
       {/* Header with Event Title and Use Template Button */}
-      <header className="px-8 py-4 flex justify-between items-center max-w-7xl mx-auto">
-        <div className="text-xl font-bold text-gray-800">
-          <span className="text-gray-500">Event</span> / <span className="text-gray-900">Register</span>
-        </div>
        
-      </header>
 
-      <main className="container mx-auto p-8 max-w-7xl">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 max-w-7xl">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Banner Image */}
-          <div className="relative h-80 w-full"> 
+          <div className="relative h-64 sm:h-80 lg:h-96 w-full"> 
+            {event.image_url ? (
             <Image
-              src={event.banner_image_url || "/images/placeholder.png"}
+                src={event.image_url}
               alt={event.title}
               fill
               style={{ objectFit: "cover" }}
               className="rounded-t-xl"
               sizes="(max-width: 1200px) 100vw, 80vw"
             />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                <div className="text-center text-white px-4">
+                  <h2 className="text-xl sm:text-2xl font-bold mb-2">{event.title}</h2>
+                  <p className="text-base sm:text-lg opacity-90">Event Banner</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Event Info Section */}
-          <div className="p-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">{event.title}</h2>
+          <div className="p-4 sm:p-6 lg:p-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">{event.title}</h2>
             
-            <div className="flex flex-col md:flex-row md:items-center text-gray-700 text-lg mb-6 gap-y-2 md:gap-x-8">
+            <div className="flex flex-col sm:flex-row sm:items-center text-gray-700 text-base sm:text-lg mb-4 sm:mb-6 gap-y-2 sm:gap-x-8">
               <div className="flex items-center">
-                <CalendarDays className="w-6 h-6 mr-2 text-gray-600" />
+                <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-gray-600" />
                 <span>{formattedDate}</span>
               </div>
               <div className="flex items-center">
-                <Clock className="w-6 h-6 mr-2 text-gray-600" />
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-gray-600" />
                 <span>{formattedTimeRange}</span>
               </div>
               <div className="flex items-center">
-                <MapPin className="w-6 h-6 mr-2 text-gray-600" />
-                <span>{event.location}</span>
+                <MapPin className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-gray-600" />
+                <span className="break-words">{event.location}</span>
               </div>
             </div>
 
-            <div className="flex gap-4 mb-10"> {/* Added mb-10 for spacing */}
-                <a href='/BuyTicketPage'>
-                      <button className="bg-[#0C2D48] text-white px-6 py-2 rounded-md hover:bg-blue-800 transition-colors font-semibold">
+            <div className="flex flex-col sm:flex-row gap-4 mb-6 sm:mb-10"> {/* Added mb-10 for spacing */}
+                <a href={`/buy-ticket?eventId=${event.id}`} className="w-full sm:w-auto">
+                      <button className="bg-[#0C2D48] text-white px-6 py-2 rounded-md hover:bg-[#0C2D48] transition-colors font-semibold w-full sm:w-auto">
                 Get Tickets
               </button>
                 </a>
             
-              <ShareButton />
+              <div className="w-full sm:w-auto">
+                <ShareButton 
+                  eventTitle={event.title}
+                  eventDescription={event.description}
+                  eventUrl={typeof window !== 'undefined' ? window.location.href : ''}
+                />
+              </div>
             </div>
 
             {/* About Event and Agenda Sections */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
               {/* About Event */}
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">About Event</h2>
@@ -137,20 +180,31 @@ export default async function EventPage({ params }: { params: { id: string } }) 
 
               {/* Agenda & Speakers Section */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Event Agenda & Speakers</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-gray-900">Event Agenda & Speakers</h2>
+                  {eventWithSessions.sessions && eventWithSessions.sessions.length > 0 && (
+                    <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                      {eventWithSessions.sessions.length} session{eventWithSessions.sessions.length !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
                 <div className="space-y-6">
-                  {event.sessions && event.sessions.length > 0 ? (
-                    event.sessions.map((session, index) => (
+                  {eventWithSessions.sessions && eventWithSessions.sessions.length > 0 ? (
+                    eventWithSessions.sessions.map((session, index) => (
                       <SpeakerCard
                         key={index}
                         sessionTitle={session.title}
                         speakerName={session.speaker_name}
                         startTime={new Date(session.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                         endTime={new Date(session.end_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                        speakerImageUrl={session.image_url}
                       />
                     ))
                   ) : (
-                    <p className="text-gray-600">No agenda items available.</p>
+                    <div className="text-center py-8">
+                      <p className="text-gray-600 mb-2">No agenda items available.</p>
+                      <p className="text-sm text-gray-500">Sessions will be added soon.</p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -158,6 +212,8 @@ export default async function EventPage({ params }: { params: { id: string } }) 
           </div>
         </div>
       </main>
+      <Footer/>
     </div>
+   
   );
 }

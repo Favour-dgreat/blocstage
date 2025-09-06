@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,7 @@ const EventDashboard = () => {
   );
   const [activeTab, setActiveTab] = useState("Upcoming");
   const [userData, setUserData] = useState<UserData>({ name: "User", email: "" });
+  const router = useRouter();
 
   // Fetch user data
   useEffect(() => {
@@ -84,21 +86,15 @@ const EventDashboard = () => {
   useEffect(() => {
     const fetchEventData = async () => {
       try {
-        console.log("🔍 Starting to fetch event data...");
-        
         // Check if user is logged in
         const authToken = localStorage.getItem("authToken");
-        console.log("🔑 Auth token exists:", !!authToken);
         
         if (!authToken) {
-          console.log("❌ No auth token found");
           setError("Please log in to view your events.");
           setLoading(false);
-          window.location.href = "/login";
+          router.push("/login");
           return;
         }
-
-        console.log("📡 Making API request to: https://api.blocstage.com/events");
         
         // Fetch user's events
         const eventResponse = await fetch("https://api.blocstage.com/events", {
@@ -109,8 +105,6 @@ const EventDashboard = () => {
           },
         });
 
-        console.log("📊 Response status:", eventResponse.status);
-        console.log("📊 Response headers:", Object.fromEntries(eventResponse.headers.entries()));
 
         if (!eventResponse.ok) {
           const errorText = await eventResponse.text();
@@ -118,7 +112,7 @@ const EventDashboard = () => {
           
           if (eventResponse.status === 401) {
             setError("Authentication failed. Please log in again.");
-            window.location.href = "/login";
+            router.push("/login");
           } else {
             setError(`Server error: ${eventResponse.status} - ${errorText}`);
           }
@@ -126,8 +120,6 @@ const EventDashboard = () => {
         }
 
         const eventData = await eventResponse.json();
-        console.log("✅ Event data received:", eventData);
-        console.log("📈 Number of events:", eventData.length);
         
         setEvents(eventData);
 
@@ -138,7 +130,6 @@ const EventDashboard = () => {
           totalRevenueGenerated: eventData.reduce((sum: number, event: Event) => sum + (event.revenue ?? 0), 0),
         };
         
-        console.log("📊 Event overview:", overview);
         setEventOverview(overview);
         
       } catch (e) {
@@ -146,7 +137,6 @@ const EventDashboard = () => {
         setError(`Failed to fetch event data: ${e instanceof Error ? e.message : 'Unknown error'}`);
       } finally {
         setLoading(false);
-        console.log("🏁 Fetch completed, loading set to false");
       }
     };
 
@@ -189,7 +179,7 @@ const EventDashboard = () => {
       const authToken = localStorage.getItem("authToken");
       if (!authToken) {
         setError("Please log in to view your events.");
-        window.location.href = "/login";
+        router.push("/login");
         return;
       }
 
@@ -204,7 +194,7 @@ const EventDashboard = () => {
       if (!eventResponse.ok) {
         if (eventResponse.status === 401) {
           setError("Authentication failed. Please log in again.");
-          window.location.href = "/login";
+          router.push("/login");
         } else {
           throw new Error(`HTTP error! status: ${eventResponse.status}`);
         }
@@ -242,14 +232,6 @@ const EventDashboard = () => {
 
   const filteredEvents = getFilteredEvents();
   
-  console.log("🎯 Render state:", {
-    loading,
-    error,
-    eventsCount: events.length,
-    filteredEventsCount: filteredEvents.length,
-    activeTab,
-    eventOverview
-  });
 
   if (loading) {
     return (
@@ -279,75 +261,75 @@ const EventDashboard = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-8 bg-[#F8F8F8] py-8 min-h-screen p-8 ml-0 md:ml-64">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 bg-[#F8F8F8] py-4 sm:py-6 lg:py-8 min-h-screen ml-0 md:ml-64">
       {/* Header section from the image */}
-      <div className="flex flex-row justify-between items-center mb-8">
-        <h1 className="text-xl font-bold text-[#282828]">Events</h1>
+      <div className="flex flex-row justify-between items-center mb-4 sm:mb-6 lg:mb-8">
+        <h1 className="text-lg sm:text-xl font-bold text-[#282828]">Events</h1>
         <div className="bg-[#E4F0FC] p-2 rounded-md cursor-pointer">
-          <Bell className="w-6 h-5 text-[#092C4C]" />
+          <Bell className="w-5 h-4 sm:w-6 sm:h-5 text-[#092C4C]" />
         </div>
       </div>
       {/* Greeting and "Create Event" button */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 lg:mb-8 space-y-4 sm:space-y-0">
         <div className="flex flex-col">
-          <h1 className="text-2xl font-bold text-[#092C4C] mb-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#092C4C] mb-2">
            Hi {userData.name}!
           </h1>
-          <p className="text-gray-600">It&apos;s time to create and manage event</p>
+          <p className="text-sm sm:text-base text-gray-600">It&apos;s time to create and manage event</p>
         </div>
         <Link href="/createevent">
-          <Button className="hidden md:block bg-[#0C2D48] text-white">
+          <Button className="bg-[#0C2D48] text-white w-full sm:w-auto">
             Create Event
           </Button>
         </Link>
       </div>
       {/* Event Overview Section */}
-      <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-bold text-[#282828] mb-4">Event Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="flex items-center p-6 bg-[#F8F8F8] rounded-lg ">
-            <div className="w-12 h-12 flex items-center justify-center bg-[#FBEAE4] rounded-full mr-4">
-              <CalendarDays className="w-6 h-6 text-[#F4511E]" />
+      <div className="mb-4 sm:mb-6 lg:mb-8 bg-white p-4 sm:p-6 rounded-lg shadow-md">
+        <h2 className="text-lg sm:text-xl font-bold text-[#282828] mb-4">Event Overview</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <Card className="flex items-center p-4 sm:p-6 bg-[#F8F8F8] rounded-lg">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-[#FBEAE4] rounded-full mr-3 sm:mr-4">
+              <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-[#F4511E]" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {eventOverview?.totalEventsCreated ?? 0}
               </p>
-              <p className="text-sm text-gray-500">Total Events Created</p>
+              <p className="text-xs sm:text-sm text-gray-500">Total Events Created</p>
             </div>
           </Card>
-          <Card className="flex items-center p-4 bg-[#F8F8F8] rounded-lg">
-            <div className="w-12 h-12 flex items-center justify-center bg-[#E4F0FC] rounded-full mr-4">
-              <Ticket className="w-6 h-6 text-[#092C4C]" />
+          <Card className="flex items-center p-4 sm:p-6 bg-[#F8F8F8] rounded-lg">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-[#E4F0FC] rounded-full mr-3 sm:mr-4">
+              <Ticket className="w-5 h-5 sm:w-6 sm:h-6 text-[#092C4C]" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {eventOverview?.totalTicketsSold ?? 0}
               </p>
-              <p className="text-sm text-gray-500">Total Ticket Sold</p>
+              <p className="text-xs sm:text-sm text-gray-500">Total Ticket Sold</p>
             </div>
           </Card>
-          <Card className="flex items-center p-4 bg-[#F8F8F8] rounded-lg">
-            <div className="w-12 h-12 flex items-center justify-center bg-[#E4F0FC] rounded-full mr-4">
-              <DollarSign className="w-6 h-6 text-[#092C4C]" />
+          <Card className="flex items-center p-4 sm:p-6 bg-[#F8F8F8] rounded-lg sm:col-span-2 lg:col-span-1">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-[#E4F0FC] rounded-full mr-3 sm:mr-4">
+              <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-[#092C4C]" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {eventOverview?.totalRevenueGenerated ?? 0}
               </p>
-              <p className="text-sm text-gray-500">Total Revenue Generated</p>
+              <p className="text-xs sm:text-sm text-gray-500">Total Revenue Generated</p>
             </div>
           </Card>
         </div>
       </div>
       {/* Event List Section */}
-      <div className="mb-8">
-        <h2 className="text-xl font-bold text-[#282828] mb-4">Events</h2>
+      <div className="mb-4 sm:mb-6 lg:mb-8">
+        <h2 className="text-lg sm:text-xl font-bold text-[#282828] mb-4">Events</h2>
         {/* Tabs for filtering events */}
-        <div className="flex space-x-4 mb-6 text-gray-600">
+        <div className="flex flex-wrap space-x-2 sm:space-x-4 mb-4 sm:mb-6 text-gray-600">
           <button
             onClick={() => setActiveTab("Upcoming")}
-            className={`font-semibold ${
+            className={`font-semibold text-sm sm:text-base px-2 py-1 ${
               activeTab === "Upcoming" ? "text-[#F4511E] border-b-2 border-[#F4511E]" : "hover:text-gray-800"
             }`}
           >
@@ -355,7 +337,7 @@ const EventDashboard = () => {
           </button>
           <button
             onClick={() => setActiveTab("All Events")}
-            className={`font-semibold ${
+            className={`font-semibold text-sm sm:text-base px-2 py-1 ${
               activeTab === "All Events" ? "text-[#F4511E] border-b-2 border-[#F4511E]" : "hover:text-gray-800"
             }`}
           >
@@ -363,7 +345,7 @@ const EventDashboard = () => {
           </button>
           <button
             onClick={() => setActiveTab("Published")}
-            className={`font-semibold ${
+            className={`font-semibold text-sm sm:text-base px-2 py-1 ${
               activeTab === "Published" ? "text-[#F4511E] border-b-2 border-[#F4511E]" : "hover:text-gray-800"
             }`}
           >
@@ -371,7 +353,7 @@ const EventDashboard = () => {
           </button>
           <button
             onClick={() => setActiveTab("Ended")}
-            className={`font-semibold ${
+            className={`font-semibold text-sm sm:text-base px-2 py-1 ${
               activeTab === "Ended" ? "text-[#F4511E] border-b-2 border-[#F4511E]" : "hover:text-gray-800"
             }`}
           >
@@ -381,7 +363,7 @@ const EventDashboard = () => {
         </div>
 
         {filteredEvents.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredEvents.map((event) => (
               <Card
                 key={event.id} // Use the unique ID as the key

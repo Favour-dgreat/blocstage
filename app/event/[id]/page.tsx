@@ -5,7 +5,8 @@ import Image from "next/image";
 import React from "react";
 import ShareButton from "@/components/ShareButton";
 import { EventData } from "@/components/EventDetailsForm";
-
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 // Define the props for the page component
 interface EventPageProps {
   params: {
@@ -26,17 +27,17 @@ const EventPage = ({ params }: EventPageProps) => {
   const { id } = params;
 
   return (
-    <div className="flex min-h-screen">
-          
-           {/* <Header /> */}
-         
-          <div className="hidden md:block">
-          <Sidebar />
-          </div>
-          <main className="flex-1 mt-12">
-      <EventDetails eventId={id} />
- </main>
-    </div>  );
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
+      <main className="flex-1 mt-12">
+        <EventDetails eventId={id} />
+      </main>
+      <Footer />
+    </div>
+  );
 };
 
 export default EventPage;

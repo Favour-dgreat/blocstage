@@ -34,6 +34,7 @@ interface Session {
   end_time: string;
   speaker_name: string;
   session_order: number;
+  image_url?: string;
 }
 
 interface EditEventFormProps {
@@ -143,7 +144,7 @@ export default function EditEventForm({ eventId }: EditEventFormProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userData, setUserData] = useState({ name: "User" });
+  const [userData, setUserData] = useState({ username: "User" });
   const router = useRouter();
 
   const steps = [
@@ -175,7 +176,7 @@ export default function EditEventForm({ eventId }: EditEventFormProps) {
         const authToken = localStorage.getItem("authToken");
         if (!authToken) {
           setError("Please log in to edit events.");
-          window.location.href = "/login";
+          router.push("/login");
           return;
         }
 
@@ -190,14 +191,15 @@ export default function EditEventForm({ eventId }: EditEventFormProps) {
         if (!response.ok) {
           if (response.status === 401) {
             setError("Authentication failed. Please log in again.");
-            window.location.href = "/login";
+            router.push("/login");
             return;
           }
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          const errorText = await response.text();
+          console.error("Failed to fetch event data:", errorText);
+          throw new Error(`Failed to load event: ${response.status} ${response.statusText} - ${errorText}`);
         }
 
         const data = await response.json();
-        console.log("Event data received:", data);
         
         setEventData({
           id: data.id,
@@ -242,7 +244,7 @@ export default function EditEventForm({ eventId }: EditEventFormProps) {
         if (response.ok) {
           const user = await response.json();
           setUserData({
-            name: user.name || user.full_name || user.username || "User",
+            username: user.username || user.name || user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || "User",
           });
         }
       } catch (error) {
@@ -281,7 +283,7 @@ export default function EditEventForm({ eventId }: EditEventFormProps) {
       const authToken = localStorage.getItem("authToken");
       if (!authToken) {
         setError("Please log in to save changes.");
-        window.location.href = "/login";
+        router.push("/login");
         return;
       }
 
@@ -317,10 +319,10 @@ export default function EditEventForm({ eventId }: EditEventFormProps) {
         category: eventData.category.length > 0 ? eventData.category[0] : "",
         tags: eventData.tags || [],
         isOnline: eventData.isOnline,
+        image_url: eventData.image_url || null,
         sessions: eventData.sessions || [],
       };
 
-      console.log("Updating event with payload:", payload);
 
       const response = await fetch(`https://api.blocstage.com/events/${eventId}`, {
         method: "PUT",
@@ -334,15 +336,15 @@ export default function EditEventForm({ eventId }: EditEventFormProps) {
       if (!response.ok) {
         if (response.status === 401) {
           setError("Authentication failed. Please log in again.");
-          window.location.href = "/login";
+          router.push("/login");
           return;
         }
         const errorText = await response.text();
-        throw new Error(`HTTP error! Status: ${response.status} - ${errorText}`);
+        console.error("API Error Response:", errorText);
+        throw new Error(`Failed to update event: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const responseData = await response.json();
-      console.log("Event updated successfully:", responseData);
 
       alert("Event updated successfully!");
       router.push(`/event/${eventId}`);
@@ -417,10 +419,10 @@ export default function EditEventForm({ eventId }: EditEventFormProps) {
   );
 
   return (
-    <div className="md:ml-64 max-w-6xl mx-auto px-8 py-8">
+    <div className="md:ml-64 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-6 lg:py-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center space-x-2 text-sm text-gray-500 mb-4">
+      <div className="mb-4 sm:mb-6 lg:mb-8">
+        <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-500 mb-4">
           <a href="/viewevent" className="hover:underline">
             <span className="text-orange-500">Event</span>
           </a>
@@ -428,15 +430,15 @@ export default function EditEventForm({ eventId }: EditEventFormProps) {
           <span>Edit Event</span>
         </div>
         
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-2xl font-bold text-[#092C4C] mb-2">Hi {userData.name}!</h1>
-            <p className="text-gray-600">Edit your event details</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-[#092C4C] mb-2">Hi {userData.username}!</h1>
+            <p className="text-sm sm:text-base text-gray-600">Edit your event details</p>
           </div>
           <Button
             variant="outline"
             onClick={() => router.back()}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-auto"
           >
             <ArrowLeft className="w-4 h-4" />
             Back

@@ -37,6 +37,7 @@ export default function EventCreationWizard() {
         end_time: "",
       },
     ],
+    tickets: [],
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false); 
@@ -98,20 +99,24 @@ export default function EventCreationWizard() {
       const authToken = localStorage.getItem("authToken");
       if (!authToken) {
         alert("Authentication token not found. Please log in.");
-        window.location.href = "/login";
+        router.push("/login");
         return;
       }
 
       // 1. Upload image if it's a File
       let imageUrl = eventData.image;
       if (eventData.image && typeof eventData.image === "object" && (eventData.image as any) instanceof File) {
-  try {
-    imageUrl = await uploadImageToCloudinary(eventData.image);
-  } catch (error) {
-    alert("Failed to upload image. Please try again.");
-    return;
-  }
-}
+        try {
+          imageUrl = await uploadImageToCloudinary(eventData.image);
+        } catch (error) {
+          console.error("Failed to upload event banner image:", error);
+          alert("Failed to upload event banner image. Please try again.");
+          return;
+        }
+      } else if (typeof eventData.image === "string") {
+        // If it's already a URL (from Cloudinary), use it directly
+        imageUrl = eventData.image;
+      }
 
       // 3. Build sessions payload
       const sessionsPayload = eventData.sessions
@@ -122,6 +127,7 @@ export default function EventCreationWizard() {
           end_time: session.end_time ? session.end_time : "",
           speaker_name: session.speaker_name?.trim() || "",
           session_order: index,
+          image_url: session.image_url || null,
         }));
 
       // 4. Validate required fields
@@ -159,7 +165,6 @@ export default function EventCreationWizard() {
         sessions: sessionsPayload,
       };
 
-      console.log("Final payload being sent:", payload);
 
       // 6. Validate JSON serialization and clean data
       try {
@@ -170,9 +175,7 @@ export default function EventCreationWizard() {
           return value;
         }));
         
-        console.log("Cleaned payload:", cleanPayload);
         const jsonString = JSON.stringify(cleanPayload);
-        console.log("JSON payload:", jsonString);
         
         // Update payload with cleaned version
         Object.assign(payload, cleanPayload);
@@ -201,7 +204,7 @@ export default function EventCreationWizard() {
         
         if (response.status === 401) {
           alert("Authentication failed. Please log in again.");
-          window.location.href = "/login";
+          router.push("/login");
           return;
         }
         
@@ -212,7 +215,41 @@ export default function EventCreationWizard() {
       }
 
       const responseData = await response.json();
-      console.log("Event created successfully:", responseData);
+
+      // Submit tickets if any exist
+      if (eventData.tickets && eventData.tickets.length > 0) {
+        try {
+          
+          for (const ticket of eventData.tickets) {
+            const ticketPayload = {
+              name: ticket.name,
+              description: ticket.description,
+              price: ticket.is_free ? "0.00" : ticket.price,
+              currency: ticket.currency,
+              is_free: ticket.is_free,
+              total_supply: ticket.total_supply
+            };
+
+
+            const ticketResponse = await fetch(`https://api.blocstage.com/events/${responseData.id}/tickets`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`,
+              },
+              body: JSON.stringify(ticketPayload)
+            });
+
+            if (!ticketResponse.ok) {
+              throw new Error(`Failed to create ticket: ${ticketResponse.statusText}`);
+            }
+          }
+
+        } catch (ticketError) {
+          console.error('Error submitting tickets:', ticketError);
+          alert('Event created but failed to submit tickets. You can add them later.');
+        }
+      }
 
       alert("Event published successfully!");
       router.push(`/events/${responseData.id}`);

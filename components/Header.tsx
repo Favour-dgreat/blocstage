@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import {Button} from "./ui/button"; 
@@ -16,7 +17,7 @@ export default function Header() {
 
   return (
     <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 p-4 ${
+      className={`fixed lg:hidden top-0 w-full z-50 transition-all duration-300 p-4  ${
         isScrolled
           ? "bg-slate-900/95 backdrop-blur-sm shadow-lg"
           : "bg-slate-900/95 backdrop-blur-sm shadow-lg"
@@ -36,11 +37,7 @@ export default function Header() {
           </div>
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-4">
-            <a href="login">
-              <Button className="outline-none text-white hover:cursor-pointer px-6 py-3 text-sm font-medium rounded-md">
-                Login
-              </Button>
-            </a>
+            
             <a href="signup">
               <Button className="bg-[#E04E1E] hover:bg-orange-600 text-white hover:cursor-pointer px-4 py-3 text-sm font-medium rounded-md">
                 Get Started

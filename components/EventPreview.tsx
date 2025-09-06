@@ -31,6 +31,17 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
     });
   };
 
+  const formatSessionTime = (startTime: string, endTime: string) => {
+    if (!startTime || !endTime) return '20 mins';
+    
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const durationMs = end.getTime() - start.getTime();
+    const durationMins = Math.round(durationMs / (1000 * 60));
+    
+    return `${formatTime(startTime)} - ${formatTime(endTime)} • ${durationMins} mins`;
+  };
+
   return (
     <div className="max-w-6xl">
          
@@ -125,18 +136,41 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
                 {data.sessions.map((session: any, index: number) => (
                   <div key={session.id} className="flex gap-4">
                     <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0">
-                      <img 
-                        src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=64&h=64&dpr=2"
-                        alt="Speaker"
-                        className="w-full h-full object-cover rounded-lg"
-                      />
+                      {session.image_url ? (
+                        <img 
+                          src={session.image_url}
+                          alt={session.speaker_name || 'Speaker'}
+                          className="w-full h-full object-cover rounded-lg"
+                          onError={(e) => {
+                            // Fallback to initials if image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = `
+                                <div class="w-full h-full bg-gray-300 rounded-lg flex items-center justify-center">
+                                  <span class="text-gray-500 text-xs font-medium">
+                                    ${session.speaker_name ? session.speaker_name.charAt(0).toUpperCase() : 'S'}
+                                  </span>
+                                </div>
+                              `;
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-300 rounded-lg flex items-center justify-center">
+                          <span className="text-gray-500 text-xs font-medium">
+                            {session.speaker_name ? session.speaker_name.charAt(0).toUpperCase() : 'S'}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1">
                       <h3 className="font-medium text-gray-900 mb-1">
                         {session.title || `Session ${index + 1}`}
                       </h3>
                       <p className="text-sm text-gray-500 mb-2">
-                        {session.start_time} - {session.end_time} • 20 mins
+                        {formatSessionTime(session.start_time, session.end_time)}
                       </p>
                       <p className="text-sm text-gray-600">
                         {session.speaker_name || 'John Okonkor'}

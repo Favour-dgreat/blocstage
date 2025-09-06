@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Clock } from "lucide-react";
+import { useState, useRef } from "react";
+import { Clock, Upload, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import Image from "next/image";
 
 interface Session {
   id: string;
@@ -14,6 +15,7 @@ interface Session {
   end_time: string;
   speaker_name: string;
   session_order: number;
+  image_url?: string;
 }
 
 interface AgendaScheduleFormProps {
@@ -40,12 +42,15 @@ export default function AgendaScheduleForm({
             end_time: "",
             speaker_name: "",
             session_order: 0,
+            image_url: "",
           },
         ]
   );
 
   const [showSkip, setShowSkip] = useState(true);
   const [nextEnabled, setNextEnabled] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState<{ [key: string]: boolean }>({});
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const addNewSession = () => {
     const newSession: Session = {
@@ -56,10 +61,85 @@ export default function AgendaScheduleForm({
       end_time: "",
       speaker_name: "",
       session_order: sessions.length,
+      image_url: "",
     };
     setSessions((prev) => [...prev, newSession]);
     setShowSkip(false);
     setNextEnabled(true);
+  };
+
+  const uploadImageToCloudinary = async (imageFile: File) => {
+    const cloudName = "dsohqp4d9"; // Your Cloudinary cloud name
+    const unsignedUploadPreset = "blocstage"; // Your upload preset
+
+    const formData = new FormData();
+    formData.append("file", imageFile);
+    formData.append("upload_preset", unsignedUploadPreset);
+
+    try {
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Cloudinary upload failed:", errorData);
+        throw new Error(errorData.error?.message || "Cloudinary upload failed");
+      }
+
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error("Error during Cloudinary upload:", error);
+      throw error;
+    }
+  };
+
+  const handleImageUpload = async (sessionId: string, file: File) => {
+    setUploadingImages(prev => ({ ...prev, [sessionId]: true }));
+    
+    try {
+      // Upload to Cloudinary
+      const imageUrl = await uploadImageToCloudinary(file);
+      updateSession(sessionId, 'image_url', imageUrl);
+      setUploadingImages(prev => ({ ...prev, [sessionId]: false }));
+      
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image. Please try again.');
+      setUploadingImages(prev => ({ ...prev, [sessionId]: false }));
+    }
+  };
+
+  const handleFileSelect = (sessionId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        return;
+      }
+      
+      handleImageUpload(sessionId, file);
+    }
+  };
+
+  const removeImage = (sessionId: string) => {
+    updateSession(sessionId, 'image_url', '');
+  };
+
+  const triggerFileInput = (sessionId: string) => {
+    fileInputRefs.current[sessionId]?.click();
   };
 
   const updateSession = (id: string, field: keyof Session, value: any) => {
@@ -165,6 +245,70 @@ export default function AgendaScheduleForm({
                   placeholder="Chioma Chiboo Ibekwe"
                   className="w-full"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* Speaker Image Upload */}
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
+              Speaker Image
+            </label>
+            <div className="flex items-center gap-4">
+              {/* Hidden file input */}
+              <input
+                ref={(el) => (fileInputRefs.current[session.id] = el)}
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileSelect(session.id, e)}
+                className="hidden"
+              />
+              
+              {/* Image preview or upload button */}
+              {session.image_url ? (
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-200">
+                    <Image
+                      src={session.image_url}
+                      alt="Speaker"
+                      width={80}
+                      height={80}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeImage(session.id)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => triggerFileInput(session.id)}
+                  disabled={uploadingImages[session.id]}
+                  className="flex flex-col items-center justify-center w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors disabled:opacity-50"
+                >
+                  {uploadingImages[session.id] ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600"></div>
+                  ) : (
+                    <>
+                      <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                      <span className="text-xs text-gray-500">Upload</span>
+                    </>
+                  )}
+                </button>
+              )}
+              
+              <div className="flex-1">
+                <p className="text-sm text-gray-600 mb-1">
+                  {session.image_url ? "Image uploaded successfully" : "Upload speaker photo"}
+                </p>
+                <p className="text-xs text-gray-400">
+                  JPG, PNG up to 5MB
+                </p>
               </div>
             </div>
           </div>

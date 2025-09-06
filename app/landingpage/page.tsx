@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { SiFacebook } from "@icons-pack/react-simple-icons";
 import { CheckCircle, Mail } from "lucide-react";
+import Footer from "@/components/Footer";
 
 const features = [
   {
@@ -161,8 +162,6 @@ export default function Home() {
         }
       );
 
-      // Log the response to see what's happening
-      console.log("Response from Google Apps Script:", response);
 
       // Check if the response status is within the success range (200-299)
       if (response.ok) {
@@ -204,11 +203,7 @@ export default function Home() {
             </div>
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center space-x-4">
-              <a href="login">
-                <Button className="outline-none text-white hover:cursor-pointer px-6 py-3 text-sm font-medium rounded-md">
-                  Login
-                </Button>
-              </a>
+             
               <a href="signup">
                 <Button className="bg-[#E04E1E] hover:bg-orange-600 text-white hover:cursor-pointer px-4 py-3 text-sm font-medium rounded-md">
                   Get Started
@@ -597,14 +592,14 @@ export default function Home() {
                     required
                   />
                   <Button
-                    className="bg-[#E04E1E] hover:bg-orange-600 text-white px-6 py-4 sm:py-6 rounded-lg text-base font-semibold shadow-none transition w-full sm:w-auto"
+                    className="bg-[#E04E1E] hover:bg-orange-600 text-white px-2 py-4 sm:py-6 rounded-lg text-base font-semibold shadow-none transition w-full sm:w-auto"
                     type="submit"
                     style={{ minWidth: "auto" }}
                     disabled={submissionStatus === "loading"}
                   >
                     {submissionStatus === "loading"
                       ? "Joining..."
-                      : "Join the family"}
+                      : "Subscribe to our newsletter"}
                   </Button>
                 </div>
                 {submissionStatus === "success" && (
@@ -651,101 +646,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#092C4C] text-white py-8 sm:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-            <div>
-              <div className="flex gap-4 sm:gap-10 items-center space-x-3 mb-2">
-              <Image
-                src="/images/blocsagelogo.png"
-                alt="BlocStage logo"
-                width={96}
-                height={96}
-                className="object-contain"
-                priority
-              />
-              </div>
-              <p className="text-gray-200 mt-5 text-sm sm:text-sm">
-                More than events, it&apos;s an ecosystem.
-              </p>
-            </div>
-            <div className="flex flex-col space-y-4 sm:space-y-6 md:space-y-0 md:items-start">
-              <h4 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">
-                Follow Us
-              </h4>
-              <div className="flex flex-wrap items-center space-x-4 sm:space-x-6 md:space-x-6">
-                <a
-                  href="#"
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white"
-                >
-                  {/* <Image
-                    src="/images/facebook.png"
-                    alt="Facebook"
-                    width={15}
-                    height={15}
-                    className="w-2 h-4"
-                  /> */}
-                  <span>Telegram</span>
-                </a>
-                <a
-                  href="#"
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white"
-                >
-                  <Image
-                    src="/images/Vector copy.png"
-                    alt="Facebook"
-                    width={24}
-                    height={24}
-                    className="w-5 h-5"
-                  />
-                  <span>Instagram</span>
-                </a>
-                <a
-                  href="#"
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white"
-                >
-                  <Image
-                    src="/images/Vector copy 2.png"
-                    alt="Facebook"
-                    width={24}
-                    height={24}
-                    className="w-5 h-5"
-                  />
-                  <span>Twitter</span>
-                </a>
-                <a
-                  href="#"
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white"
-                >
-                  <Image
-                    src="/images/Vector.png"
-                    alt="Facebook"
-                    width={24}
-                    height={24}
-                    className="w-5 h-5"
-                  />
-                  <span>LinkedIn</span>
-                </a>
-              </div>
-            </div>
-          </div>
-          <hr className="border-gray-600 my-6 sm:my-8" />
-          <div className="flex flex-col md:flex-row items-center justify-between text-gray-300 text-xs sm:text-sm space-y-2 sm:space-y-4 md:space-y-0">
-            <div>© 2025 BlocStage. All rights reserved.</div>
-            <div className="flex space-x-4 sm:space-x-6">
-              <a href="#" className="hover:underline">
-                Privacy Policy
-              </a>
-              <a href="#" className="hover:underline">
-                Terms of Service
-              </a>
-              <a href="#" className="hover:underline">
-                Cookies Settings
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

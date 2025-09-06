@@ -49,31 +49,72 @@ export default function EventPreview({ onBack, onUpdate, onNext }: EventPreviewP
     }
   };
 
-  const startFileSelection = (file: File) => {
+  const uploadImageToCloudinary = async (imageFile: File) => {
+    const cloudName = "dsohqp4d9"; // Your Cloudinary cloud name
+    const unsignedUploadPreset = "blocstage"; // Your upload preset
+
+    const formData = new FormData();
+    formData.append("file", imageFile);
+    formData.append("upload_preset", unsignedUploadPreset);
+
+    try {
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Cloudinary upload failed:", errorData);
+        throw new Error(errorData.error?.message || "Cloudinary upload failed");
+      }
+
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error("Error during Cloudinary upload:", error);
+      throw error;
+    }
+  };
+
+  const startFileSelection = async (file: File) => {
     if (file.type.startsWith("image/")) {
       setSelectedFile(file);
       setUploading(true);
       setUploadProgress(0);
 
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 20;
-        if (progress >= 100) {
-          clearInterval(interval);
-          setUploadProgress(100);
-
-          const reader = new FileReader();
-          reader.onloadend = (ev) => {
-            setImagePreview(ev.target?.result as string);
-            onUpdate({ image: file });
-            setUploading(false);
-            setSelectedFile(null);
-          };
-          reader.readAsDataURL(file);
-        } else {
+      try {
+        // Simulate progress for better UX
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+          progress += 20;
           setUploadProgress(progress);
-        }
-      }, 300);
+          if (progress >= 90) {
+            clearInterval(progressInterval);
+          }
+        }, 200);
+
+        // Upload to Cloudinary
+        const imageUrl = await uploadImageToCloudinary(file);
+        
+        clearInterval(progressInterval);
+        setUploadProgress(100);
+        
+        setImagePreview(imageUrl);
+        onUpdate({ image: imageUrl }); // Store the Cloudinary URL
+        setUploading(false);
+        setSelectedFile(null);
+        
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('Failed to upload image. Please try again.');
+        setUploading(false);
+        setSelectedFile(null);
+        setUploadProgress(0);
+      }
     }
   };
 

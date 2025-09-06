@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import EventCreationWizard from "@/components/EventCreationWizard";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const eventPage = () => {
   const router = useRouter();
@@ -34,9 +35,9 @@ const eventPage = () => {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col">
       
-       {/* <Header /> */}
+       <Header />
      
       <div className="hidden md:block">
       <Sidebar />
@@ -44,6 +45,7 @@ const eventPage = () => {
       <main className="flex-1 mt-12">
         <EventCreationWizard />
       </main>
+      <Footer />
     </div>
   );
   };
