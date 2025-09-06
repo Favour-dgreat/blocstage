@@ -238,12 +238,12 @@ export default function Home() {
           {/* Mobile Nav Menu */}
           {mobileNavOpen && (
             <div className="md:hidden flex flex-col space-y-2 mt-2 pb-4">
-              <a href="login">
+              <a href="/login">
                 <Button className="w-full outline-none text-white hover:cursor-pointer px-6 py-3 text-sm font-medium rounded-md">
                   Login
                 </Button>
               </a>
-              <a href="signup">
+              <a href="/signup">
                 <Button className="w-full bg-[#E04E1E] hover:bg-orange-600 text-white hover:cursor-pointer px-6 py-3 text-sm font-medium rounded-md">
                   Get Started
                 </Button>
