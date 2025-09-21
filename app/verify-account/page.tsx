@@ -21,12 +21,14 @@ const openMailApp = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
       <div className="absolute top-6 left-6">
-       <Image className="justify-center items-center"
-                       src="/images/logoorange.png"
-                       alt="blocStage"
-                       width={150}
-                       height={40}
-                       />
+       <a href="/landingpage" className="cursor-pointer">
+         <Image className="justify-center items-center"
+                         src="/images/logoorange.png"
+                         alt="blocStage"
+                         width={150}
+                         height={40}
+                         />
+       </a>
       </div>
 
       <div className="bg-white p-8 md:p-12 rounded-lg shadow-lg max-w-md w-full text-center">

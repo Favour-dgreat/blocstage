@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Clock, Upload, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
+import { validateDateTimeRange, showDateTimeAlert } from "@/lib/dateValidation";
 
 interface Session {
   id: string;
@@ -31,6 +33,7 @@ export default function AgendaScheduleForm({
   onNext,
   onBack,
 }: AgendaScheduleFormProps) {
+  const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>(
     data.sessions?.length > 0
       ? data.sessions
@@ -50,6 +53,7 @@ export default function AgendaScheduleForm({
   const [showSkip, setShowSkip] = useState(true);
   const [nextEnabled, setNextEnabled] = useState(false);
   const [uploadingImages, setUploadingImages] = useState<{ [key: string]: boolean }>({});
+  const [savingSessions, setSavingSessions] = useState(false);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const addNewSession = () => {
@@ -146,8 +150,91 @@ export default function AgendaScheduleForm({
     const updatedSessions = sessions.map((session) =>
       session.id === id ? { ...session, [field]: value } : session
     );
+    
+    // Validate date/time if updating start_time or end_time
+    // if (field === 'start_time' || field === 'end_time') {
+    //   const session = updatedSessions.find(s => s.id === id);
+    //   if (session) {
+    //     const validation = validateDateTimeRange(
+    //       session.start_time,
+    //       session.end_time,
+    //       `Session "${session.title || 'Untitled'}"`
+    //     );
+        
+    //     if (!validation.isValid) {
+    //       showDateTimeAlert(validation.message);
+    //       return; // Don't update if validation fails
+    //     }
+    //   }
+    // }
+    
     setSessions(updatedSessions);
     onUpdate({ sessions: updatedSessions });
+  };
+
+  // Function to save all sessions to API in a single request
+  const saveSessionsToAPI = async (sessionsData: Session[]) => {
+    try {
+      const authToken = localStorage.getItem("authToken");
+      if (!authToken) {
+        alert("Please log in to save sessions.");
+        router.push("/login");
+        return;
+      }
+
+      // Transform sessions data for API
+      const sessionsPayload = sessionsData.map(session => ({
+        title: session.title,
+        description: session.description,
+        start_time: session.start_time,
+        end_time: session.end_time,
+        speaker_name: session.speaker_name,
+        session_order: session.session_order,
+        image_url: session.image_url || null,
+      }));
+
+      console.log("Sending sessions to API:", {
+        eventId: data.id,
+        sessionsCount: sessionsPayload.length,
+        payload: sessionsPayload
+      });
+
+      // Try POST first (for creating new sessions)
+      let response = await fetch(`https://api.blocstage.com/events/${data.id}/sessions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ sessions: sessionsPayload }),
+      });
+
+      // If POST fails with 405 (Method Not Allowed), try PUT
+      if (!response.ok && response.status === 405) {
+        console.log("POST not supported, trying PUT method...");
+        response = await fetch(`https://api.blocstage.com/events/${data.id}/sessions`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({ sessions: sessionsPayload }),
+        });
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API Error Response:", errorText);
+        throw new Error(`Failed to save sessions: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log("Sessions saved successfully:", result);
+      return result;
+    } catch (error) {
+      console.error("Error saving sessions:", error);
+      throw error;
+    }
   };
 
   const removeSession = (id: string) => {
@@ -157,6 +244,76 @@ export default function AgendaScheduleForm({
         .map((session, index) => ({ ...session, session_order: index }));
       setSessions(updatedSessions);
       onUpdate({ sessions: updatedSessions });
+    }
+  };
+
+  // Function to validate sessions before saving
+  const validateSessions = (sessionsData: Session[]): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    
+    sessionsData.forEach((session, index) => {
+      if (!session.title.trim()) {
+        errors.push(`Session ${index + 1}: Title is required`);
+      }
+      if (!session.start_time) {
+        errors.push(`Session ${index + 1}: Start time is required`);
+      }
+      if (!session.end_time) {
+        errors.push(`Session ${index + 1}: End time is required`);
+      }
+      if (!session.speaker_name.trim()) {
+        errors.push(`Session ${index + 1}: Speaker name is required`);
+      }
+      
+      // Validate date/time range
+      if (session.start_time && session.end_time) {
+        const validation = validateDateTimeRange(
+          session.start_time,
+          session.end_time,
+          `Session ${index + 1}: "${session.title || 'Untitled'}"`
+        );
+        if (!validation.isValid) {
+          errors.push(validation.message);
+        }
+      }
+    });
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
+  // Function to save all sessions to API
+  const saveAllSessions = async () => {
+    try {
+      // Validate sessions before sending
+      const validation = validateSessions(sessions);
+      if (!validation.isValid) {
+        const errorMessage = validation.errors.join('\n');
+        alert(`Please fix the following errors:\n\n${errorMessage}`);
+        return;
+      }
+
+      await saveSessionsToAPI(sessions);
+      console.log("All sessions saved successfully");
+    } catch (error) {
+      console.error("Error saving sessions:", error);
+      throw error;
+    }
+  };
+
+  // Handle Next button click with session saving
+  const handleNext = async () => {
+    try {
+      setSavingSessions(true);
+      await saveAllSessions();
+      onNext();
+    } catch (error) {
+      console.error("Failed to save sessions:", error);
+      alert("Failed to save sessions. Please try again.");
+    } finally {
+      setSavingSessions(false);
     }
   };
 
@@ -314,7 +471,7 @@ export default function AgendaScheduleForm({
           </div>
 
           {/* Switch & Remove Button */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <div className="flex flex-col md:flex-row mt-4 md:items-center md:justify-between gap-2">
             
             {sessions.length > 1 && (
               <Button
@@ -348,12 +505,13 @@ export default function AgendaScheduleForm({
           </Button>
         )}
         <Button
-          onClick={onNext}
+          onClick={handleNext}
+          disabled={savingSessions}
           className={`px-8 py-2 text-white w-full md:w-auto ${
             "bg-[#092C4C] hover:bg-[#092C4C]" 
-          }`}
+          } disabled:opacity-50`}
         >
-          Next
+          {savingSessions ? "Saving Sessions..." : "Next"}
         </Button>
       </div>
     </div>

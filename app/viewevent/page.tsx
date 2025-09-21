@@ -15,7 +15,7 @@ const viewEvent = () => {
        <EventDashboard />
       
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
     };

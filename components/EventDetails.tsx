@@ -17,14 +17,25 @@ interface EventDetailsProps {
 }
 
 // Define the expected structure of your event data from the API
+interface Session {
+  id: string;
+  title: string;
+  speaker_name: string;
+  start_time: string;
+  end_time: string;
+  description?: string;
+  image_url?: string;
+}
+
 interface EventData {
   id: string;
   title: string;
   start_time: string;
   end_time: string;
   location: string;
-  tickets_sold: number;
-  revenue_generated: number;
+  total_tickets_sold: number;
+  total_revenue: number;
+  sessions?: Session[];
   // Add any other properties your API returns
 }
 
@@ -39,10 +50,73 @@ interface EventOverview {
 const EventDetails = ({ eventId }: EventDetailsProps) => {
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [eventOverview, setEventOverview] = useState<EventOverview | null>(null);
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('Upcoming'); // Matches the initial state in the image
   const router = useRouter();
+
+  // Function to fetch analytics data for the event
+  const fetchEventAnalytics = async (eventId: string) => {
+    try {
+      const authToken = localStorage.getItem("authToken");
+      if (!authToken) {
+        alert("Please log in to view analytics.");
+        router.push("/login");
+        return { total_tickets_sold: 0, total_revenue: 0 };
+      }
+
+      const response = await fetch(`https://api.blocstage.com/events/${eventId}/analytics`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        // If analytics endpoint fails, return default values
+        return { total_tickets_sold: 0, total_revenue: 0 };
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching event analytics:", error);
+      // Return default values if analytics fetch fails
+      return { total_tickets_sold: 0, total_revenue: 0 };
+    }
+  };
+
+  // Function to fetch sessions for the event
+  const fetchEventSessions = async (eventId: string) => {
+    try {
+      const authToken = localStorage.getItem("authToken");
+      if (!authToken) {
+        alert("Please log in to view sessions.");
+        router.push("/login");
+        return [];
+      }
+
+      const response = await fetch(`https://api.blocstage.com/events/${eventId}/sessions`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        // If sessions endpoint fails, return empty array
+        return [];
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching event sessions:", error);
+      // Return empty array if sessions fetch fails
+      return [];
+    }
+  };
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -56,6 +130,7 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
           return;
         }
 
+        // Fetch event data
         const response = await fetch(`https://api.blocstage.com/events/${eventId}`, {
           method: "GET",
           headers: {
@@ -78,12 +153,18 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
         const data: EventData = await response.json();
         setEventData(data);
         
-        // Populate event overview with dynamic data where possible,
-        // otherwise use sensible defaults or fetch from another endpoint if available.
+        // Fetch analytics data for accurate ticket sales and revenue
+        const analytics = await fetchEventAnalytics(eventId);
+        
+        // Fetch sessions data from dedicated endpoint
+        const sessionsData = await fetchEventSessions(eventId);
+        setSessions(sessionsData);
+        
+        // Populate event overview with analytics data
         setEventOverview({
           totalEventsCreated: 1, // This typically comes from a different aggregate API
-          totalTicketsSold: data.tickets_sold,
-          totalRevenueGenerated: data.revenue_generated,
+          totalTicketsSold: Number(analytics.total_tickets_sold) || 0,
+          totalRevenueGenerated: Number(analytics.total_revenue) || 0,
         });
 
       } catch (e: any) {
@@ -188,24 +269,59 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
               <MapPin className="w-5 h-5 text-gray-500 flex-shrink-0 mt-1" />
               <span className="font-medium">{eventData.location || "Online Event"}</span>
             </div>
+            <div className="flex items-start space-x-3">
+              <div className="w-5 h-5 text-gray-500 flex-shrink-0 mt-1">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 mb-3">Event Sessions</h3>
+                {sessions && sessions.length > 0 ? (
+                  <div className="space-y-3">
+                    {sessions.map((session, index) => (
+                      <div key={session.id || index} className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex items-start space-x-3">
+                          {session.image_url && (
+                            <img
+                              src={session.image_url}
+                              alt={session.speaker_name}
+                              className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                            />
+                          )}
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900">{session.title}</h4>
+                            <p className="text-sm text-gray-600 mb-2">{session.speaker_name}</p>
+                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                              <span>
+                                {new Date(session.start_time).toLocaleTimeString("en-US", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </span>
+                              <span>•</span>
+                              <span>
+                                {new Date(session.end_time).toLocaleTimeString("en-US", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </span>
+                            </div>
+                            {session.description && (
+                              <p className="text-sm text-gray-600 mt-2">{session.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No sessions scheduled for this event.</p>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Event Tabs */}
-          <div className="flex flex-wrap space-x-4 sm:space-x-6 mt-8 border-b border-gray-200 text-gray-600">
-            {['Upcoming', 'Tickets', 'Attendee List', 'Sales'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`py-3 px-2 text-sm sm:text-base font-semibold transition-colors whitespace-nowrap ${
-                  activeTab === tab
-                    ? 'text-[#F4511E] border-b-2 border-[#F4511E]'
-                    : 'hover:text-gray-800'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+          
         </div>
 
         {/* Event Overview Section */}
@@ -214,16 +330,16 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
             Event Overview
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Card: Total Events Created */}
+            {/* Card: Event Type */}
             <div className="flex items-center p-6 bg-[#F8F8F8] rounded-lg">
               <div className="w-12 h-12 flex items-center justify-center bg-[#FBEAE4] rounded-full mr-4 flex-shrink-0">
-                <CalendarDays className="w-6 h-6 text-[#F4511E]" />
+                <Ticket className="w-6 h-6 text-[#F4511E]" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {eventOverview?.totalEventsCreated ?? 0}
+                  {eventOverview?.totalRevenueGenerated === 0 ? 'Free' : 'Paid'}
                 </p>
-                <p className="text-sm text-gray-500">Total Events Created</p>
+                <p className="text-sm text-gray-500">Event Type</p>
               </div>
             </div>
             {/* Card: Total Ticket Sold */}
@@ -245,7 +361,7 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  ₦{(eventOverview?.totalRevenueGenerated ?? 0).toLocaleString()}
+                  {Number(eventOverview?.totalRevenueGenerated ?? 0).toLocaleString()} USDC
                 </p>
                 <p className="text-sm text-gray-500">Total Revenue Generated</p>
               </div>

@@ -125,13 +125,15 @@ export default function Sidebar() {
       <div className="px-6 py-8 overflow-y-auto">
         {/* Logo */}
         <div className="flex items-center gap-2 mb-12">
-          <Image
-            className="justify-center items-center"
-            src="/images/sidebarlogo.png"
-            alt="blocStage"
-            width={120}
-            height={32}
-          />
+          <a href="/landingpage" className="cursor-pointer">
+            <Image
+              className="justify-center items-center"
+              src="/images/sidebarlogo.png"
+              alt="blocStage"
+              width={120}
+              height={32}
+            />
+          </a>
         </div>
 
         {/* Menu Items */}

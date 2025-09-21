@@ -7,9 +7,10 @@ interface EventPreviewProps {
   data: any;
   onBack: () => void;
   onPublish: () => void;
+  isLoading?: boolean;
 }
 
-export default function EventPreview({ data, onBack, onPublish }: EventPreviewProps) {
+export default function EventPreview({ data, onBack, onPublish, isLoading = false }: EventPreviewProps) {
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Saturday, August 10, 2025';
     const date = new Date(dateString);
@@ -68,7 +69,7 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
         <div className="p-4 md:p-6">
           {/* Event Title */}
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
-            {data.title || 'BTS Watch Party: Purple Night Edition'}
+            {data.title }
           </h1>
 
           {/* Event Details */}
@@ -104,25 +105,19 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
               <div>
                 <p className="text-sm text-gray-500">Location</p>
                 <p className="font-medium text-gray-900">
-                  {data.location || 'The Vibe Lounge, Warri, Delta State, Nigeria'}
+                  {data.location }
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Get Tickets Button */}
-          <div className="mb-8">
-            <Button className="bg-[#092C4C] hover:bg-[#092C4C] text-white px-4 py-2 text-sm">
-              Get Tickets
-            </Button>
-          </div>
+          
 
           {/* About Event */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">About Event</h2>
             <p className="text-gray-600 leading-relaxed">
-              {data.description || 
-                "Join fellow ARMYs for a night of music, fun, and unforgettable BTS moments! Whether you're tuning in from home or vibing live with us, it's going to be a Purple Night to remember."
+              {data.description 
               }
             </p>
           </div>
@@ -173,7 +168,7 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
                         {formatSessionTime(session.start_time, session.end_time)}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {session.speaker_name || 'John Okonkor'}
+                        {session.speaker_name}
                       </p>
                     </div>
                   </div>
@@ -215,9 +210,22 @@ export default function EventPreview({ data, onBack, onPublish }: EventPreviewPr
 </Button>
         <Button
           onClick={onPublish}
-          className="px-6 py-2 bg-[#092C4C] text-white hover:bg-[#092C4C]"
+          disabled={isLoading}
+          className={`px-6 py-2 bg-[#092C4C] text-white hover:bg-[#092C4C] flex items-center ${
+            isLoading ? 'opacity-70 cursor-not-allowed' : ''
+          }`}
         >
-          Publish Event
+          {isLoading ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Publishing...
+            </>
+          ) : (
+            'Publish Event'
+          )}
         </Button>
       </div>
     </div>

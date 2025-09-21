@@ -137,6 +137,8 @@ export default function TicketsForm({
                               Early Bird
                             </SelectItem>
                             <SelectItem value="student" className="hover:bg-gray-100">Student</SelectItem>
+                            <SelectItem value="group" className="hover:bg-gray-100">Group</SelectItem>
+                            <SelectItem value="premium" className="hover:bg-gray-100">Premium</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

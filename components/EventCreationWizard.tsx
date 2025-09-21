@@ -8,6 +8,7 @@ import EventDetailsPreview from "./EventDetailsPreview";
 import AgendaScheduleForm from "./AgendaScheduleForm";
 import TicketsForm from "./TicketsForm";
 import EventPreview from "./EventPreview";
+import { createSlug } from "@/lib/slugUtils";
 
 const steps = [
   { id: "details", title: "Event Details", completed: false },
@@ -252,7 +253,8 @@ export default function EventCreationWizard() {
       }
 
       alert("Event published successfully!");
-      router.push(`/events/${responseData.id}`);
+      const eventSlug = createSlug(eventData.title);
+      router.push(`/events/${eventSlug}`);
 
       
     } catch (error: any) {
@@ -381,6 +383,7 @@ export default function EventCreationWizard() {
               data={eventData}
               onBack={handleBack}
               onPublish={handlePublish}
+              isLoading={isLoading}
             />
           )}
         </div>

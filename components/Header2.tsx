@@ -17,7 +17,7 @@ export default function Header() {
 
   return (
     <nav
-      className={`fixed lg:hidden top-0 w-full z-50 transition-all duration-300 p-4  ${
+      className={`fixed  top-0 w-full z-50 transition-all duration-300 p-4  ${
         isScrolled
           ? "bg-slate-900/95 backdrop-blur-sm shadow-lg"
           : "bg-slate-900/95 backdrop-blur-sm shadow-lg"
@@ -26,7 +26,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between ">
           <div className="flex items-center">
-            <a href="/landingpage" className="cursor-pointer">
+            <a href="https://blocstage.com" className="cursor-pointer">
               <Image
                 src="/images/blocsagelogo.png"
                 alt="BlocStage logo"
@@ -38,9 +38,9 @@ export default function Header() {
             </a>
           </div>
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className=" md:flex items-center space-x-4">
             
-            <a href="signup">
+            <a href="https://blocstage.com/signup">
               <Button className="bg-[#E04E1E] hover:bg-orange-600 text-white hover:cursor-pointer px-4 py-3 text-sm font-medium rounded-md">
                 Get Started
               </Button>
@@ -74,12 +74,12 @@ export default function Header() {
         {/* Mobile Nav Menu */}
         {mobileNavOpen && (
           <div className="md:hidden flex flex-col space-y-2 mt-2 pb-4">
-            <a href="login">
+            <a href="https://blocstage.com/login">
               <Button className="w-full outline-none text-white hover:cursor-pointer px-6 py-3 text-sm font-medium rounded-md">
                 Login
               </Button>
             </a>
-            <a href="signup">
+            <a href="https://blocstage.com/signup">
               <Button className="w-full bg-[#E04E1E] hover:bg-orange-600 text-white hover:cursor-pointer px-6 py-3 text-sm font-medium rounded-md">
                 Get Started
               </Button>

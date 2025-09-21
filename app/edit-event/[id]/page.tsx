@@ -45,7 +45,7 @@ const EditEventPage = ({ params }: { params: { id: string } }) => {
       <main className="flex-1 mt-12">
         <EditEventForm eventId={params.id} />
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };

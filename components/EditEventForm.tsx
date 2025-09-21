@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import AgendaScheduleForm from "./AgendaScheduleForm";
+import { validateDateTimeRange, showDateTimeAlert } from "@/lib/dateValidation";
+import LocationMap from "./LocationMap";
 
 // Event data type
 export interface EventData {
@@ -256,6 +258,9 @@ export default function EditEventForm({ eventId }: EditEventFormProps) {
   }, []);
 
   const handleChange = (update: Partial<EventData>) => {
+    // Validate date/time if updating start_time or end_time
+   
+    
     setEventData((prev) => ({ ...prev, ...update }));
   };
 
@@ -374,7 +379,7 @@ export default function EditEventForm({ eventId }: EditEventFormProps) {
         <div className="text-center">
           <p className="text-red-500 mb-4">{error}</p>
           <button 
-            onClick={() => window.location.reload()} 
+            onClick={() => router.refresh()} 
             className="px-4 py-2 bg-[#092C4C] text-white rounded hover:bg-[#0a3a5c]"
           >
             Retry
@@ -489,10 +494,10 @@ export default function EditEventForm({ eventId }: EditEventFormProps) {
               <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
                 Location
               </label>
-              <Input
+              <LocationMap
                 value={eventData.location}
-                onChange={(e) => handleChange({ location: e.target.value })}
-                placeholder="The Vibe Lounge, Warri, Delta State, Nigeria"
+                onChange={(location) => handleChange({ location })}
+                placeholder="Search for locations in Nigeria..."
                 className="w-full"
               />
               <div className="flex items-center space-x-2 mt-2">

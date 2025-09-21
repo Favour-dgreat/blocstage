@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 
 /* ---------- Interfaces ---------- */
@@ -8,9 +9,10 @@ interface Ticket {
   id: string;
   name: string;
   description: string;
+  price: string; // Price as string to match payload format
+  currency: string; // Currency field
   is_free: boolean;
   total_supply: number;
-  price?: number; // For paid tickets
   benefits?: string[]; // Optional benefits
   isTransferable?: boolean; // Optional transferability
   isResellable?: boolean; // Optional resellability
@@ -44,8 +46,10 @@ const fetchEventTickets = async (eventId: string): Promise<Ticket[]> => {
   }
 };
 
+
 /* ---------- Main BuyTicketsPage ---------- */
 const BuyTicketsPage = ({ eventId, ticketsData }: BuyTicketsPageProps) => {
+  const router = useRouter();
   const [tickets, setTickets] = useState<Ticket[]>(ticketsData || []);
   const [loading, setLoading] = useState(!ticketsData);
   const [error, setError] = useState<string | null>(null);
@@ -90,17 +94,30 @@ const BuyTicketsPage = ({ eventId, ticketsData }: BuyTicketsPageProps) => {
   }, [eventId, ticketsData]);
 
   const handleQuantityChange = (id: string, delta: number) => {
-    setTicketQuantities((prev) => ({
-      ...prev,
-      [id]: Math.max(0, prev[id] + delta),
-    }));
+    const ticket = tickets.find(t => t.id === id);
+    if (!ticket) return;
+
+    setTicketQuantities((prev) => {
+      const currentQuantity = prev[id] || 0;
+      const newQuantity = currentQuantity + delta;
+      
+      // Validate against available supply
+      if (delta > 0 && newQuantity > ticket.total_supply) {
+        return prev; // Don't allow exceeding available supply
+      }
+      
+      return {
+        ...prev,
+        [id]: Math.max(0, newQuantity),
+      };
+    });
   };
 
   const totalTickets = Object.values(ticketQuantities).reduce((sum, qty) => sum + qty, 0);
   const subtotal = tickets.reduce(
     (sum, ticket) => {
       const quantity = ticketQuantities[ticket.id] || 0;
-      const price = ticket.is_free ? 0 : (ticket.price || 0);
+      const price = ticket.is_free ? 0 : parseFloat(ticket.price || "0");
       return sum + (price * quantity);
     },
     0
@@ -111,7 +128,7 @@ const BuyTicketsPage = ({ eventId, ticketsData }: BuyTicketsPageProps) => {
     .filter((ticket) => ticketQuantities[ticket.id] > 0)
     .map((ticket) => ({
       name: `x${ticketQuantities[ticket.id]} ${ticket.name}`,
-      price: ticket.is_free ? 0 : (ticket.price || 0) * ticketQuantities[ticket.id],
+      price: ticket.is_free ? 0 : parseFloat(ticket.price || "0") * ticketQuantities[ticket.id],
     }));
 
   if (showContactForm) {
@@ -125,6 +142,7 @@ const BuyTicketsPage = ({ eventId, ticketsData }: BuyTicketsPageProps) => {
         setTickets={setTickets}
         ticketQuantities={ticketQuantities}
         setTicketQuantities={setTicketQuantities}
+        router={router}
       />
     );
   }
@@ -154,7 +172,7 @@ const BuyTicketsPage = ({ eventId, ticketsData }: BuyTicketsPageProps) => {
             <div className="text-center">
               <p className="text-red-500 mb-4">{error}</p>
               <button 
-                onClick={() => window.location.reload()} 
+                onClick={() => router.refresh()} 
                 className="px-4 py-2 bg-[#092C4C] text-white rounded hover:bg-[#0a3a5c]"
               >
                 Retry
@@ -249,7 +267,9 @@ const ProgressBar = ({ currentStep }: { currentStep: number }) => {
           {index < steps.length - 1 && (
             <div className={`flex-1 h-0.5 mx-4 ${
               index < currentStep ? "bg-[#092C4C]" : "bg-gray-200"
-            }`}></div>
+            }`}>
+              
+            </div>
           )}
         </div>
       ))}
@@ -273,9 +293,18 @@ const TicketCard = ({
     <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4">
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <h2 className="text-lg font-bold text-[#092C4C] mb-2">{ticket.name}</h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-bold text-[#092C4C]">{ticket.name}</h2>
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              ticket.is_free 
+                ? 'bg-green-100 text-green-700' 
+                : 'bg-orange-100 text-orange-700'
+            }`}>
+              {ticket.is_free ? 'FREE' : 'PAID'}
+            </span>
+          </div>
           <p className="text-[#F4511E] font-semibold text-lg mb-3">
-            {ticket.is_free ? 'FREE' : `NGN ${(ticket.price || 0).toLocaleString()}`}
+            {ticket.is_free ? 'FREE' : `${ticket.currency} ${parseFloat(ticket.price || "0").toLocaleString()}`}
           </p>
 
           {/* Description */}
@@ -349,6 +378,7 @@ const TicketCard = ({
                 ? "border-gray-200 text-gray-400 cursor-not-allowed"
                 : "border-gray-300 hover:bg-gray-50"
             }`}
+            title={quantity === 0 ? "No tickets selected" : `Remove one ${ticket.name} ticket`}
           >
             -
           </button>
@@ -361,6 +391,7 @@ const TicketCard = ({
                 ? "border-gray-200 bg-gray-200 text-gray-400 cursor-not-allowed"
                 : "border-[#F4511E] bg-[#F4511E] text-white hover:bg-[#e03e0c]"
             }`}
+            title={quantity >= ticket.total_supply ? "Maximum tickets selected" : `Add one ${ticket.name} ticket`}
           >
             +
           </button>
@@ -392,14 +423,14 @@ const SummaryCard = ({
       {summaryItems.map((item, index) => (
         <div key={index} className="flex justify-between">
           <span className="text-gray-700">{item.name}</span>
-          <span className="text-gray-900 font-medium">NGN {item.price.toLocaleString()}</span>
+          <span className="text-gray-900 font-medium">{item.price === 0 ? 'FREE' : `USDC ${item.price.toLocaleString()}`}</span>
         </div>
       ))}
     </div>
     <div className="border-t border-gray-200 my-4" />
     <div className="flex justify-between text-base font-bold text-[#092C4C]">
       <span>Total</span>
-      <span>NGN {total.toLocaleString()}</span>
+      <span>{total === 0 ? 'FREE' : `USDC ${total.toLocaleString()}`}</span>
     </div>
     <button
       onClick={onButtonClick}
@@ -425,6 +456,7 @@ const ContactInformationPage = ({
   setTickets,
   ticketQuantities,
   setTicketQuantities,
+  router,
 }: {
   total: number;
   summaryItems: SummaryItem[];
@@ -434,6 +466,7 @@ const ContactInformationPage = ({
   setTickets: (tickets: Ticket[]) => void;
   ticketQuantities: { [key: string]: number };
   setTicketQuantities: (quantities: { [key: string]: number }) => void;
+  router: ReturnType<typeof useRouter>;
 }) => {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -462,6 +495,17 @@ const ContactInformationPage = ({
         return;
       }
 
+      // Validate that selected quantities don't exceed available supply
+      for (const [ticketId, quantity] of Object.entries(ticketQuantities)) {
+        if (quantity > 0) {
+          const ticket = tickets.find(t => t.id === ticketId);
+          if (ticket && quantity > ticket.total_supply) {
+            alert(`Cannot purchase ${quantity} tickets for "${ticket.name}". Only ${ticket.total_supply} tickets available.`);
+            return;
+          }
+        }
+      }
+
       // Get the selected ticket type ID from the actual ticket data
       const selectedTicketId = Object.keys(ticketQuantities).find(id => ticketQuantities[id] > 0);
       const selectedTicket = tickets.find(ticket => ticket.id === selectedTicketId);
@@ -478,18 +522,41 @@ const ContactInformationPage = ({
         phone: formData.phone,
         eventId: eventId,
         ticketTypeId: selectedTicket.id,
-        quantity: ticketQuantities[selectedTicket.id]
+        quantity: ticketQuantities[selectedTicket.id],
+        ticketData: {
+          name: selectedTicket.name,
+          description: selectedTicket.description,
+          price: selectedTicket.price,
+          currency: selectedTicket.currency,
+          is_free: selectedTicket.is_free,
+          total_supply: selectedTicket.total_supply
+        }
       };
 
       // Get authentication token
       const authToken = localStorage.getItem("authToken");
       if (!authToken) {
-        alert("Please log in to claim tickets.");
+        alert("Please log in to purchase tickets.");
+        router.push("/login");
         return;
       }
 
+      // Determine endpoint based on whether ticket is free or paid
+      const endpoint = selectedTicket.is_free 
+        ? `https://api.blocstage.com/ticket-types/${selectedTicket.id}/claim`
+        : `https://api.blocstage.com/ticket-types/${selectedTicket.id}/purchase`;
 
-      const response = await fetch(`https://api.blocstage.com/ticket-types/${selectedTicket.id}/claim`, {
+      console.log(`Using ${selectedTicket.is_free ? 'claim' : 'purchase'} endpoint for ${selectedTicket.is_free ? 'free' : 'paid'} ticket:`, endpoint);
+      console.log('Ticket details:', {
+        id: selectedTicket.id,
+        name: selectedTicket.name,
+        is_free: selectedTicket.is_free,
+        price: selectedTicket.price,
+        currency: selectedTicket.currency,
+        quantity: ticketQuantities[selectedTicket.id]
+      });
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -501,16 +568,19 @@ const ContactInformationPage = ({
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API Error Response:', errorText);
-        throw new Error(`Failed to claim ticket: ${response.status} ${response.statusText} - ${errorText}`);
+        const action = selectedTicket.is_free ? 'claim' : 'purchase';
+        throw new Error(`Failed to ${action} ticket: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       // Reduce available tickets after successful registration
       const updatedTickets = tickets.map(ticket => {
         const quantityClaimed = ticketQuantities[ticket.id] || 0;
         if (quantityClaimed > 0) {
+          const newSupply = Math.max(0, ticket.total_supply - quantityClaimed);
+          console.log(`Reducing ${ticket.name} supply from ${ticket.total_supply} to ${newSupply} (claimed: ${quantityClaimed})`);
           return {
             ...ticket,
-            total_supply: Math.max(0, ticket.total_supply - quantityClaimed)
+            total_supply: newSupply
           };
         }
         return ticket;
@@ -528,10 +598,17 @@ const ContactInformationPage = ({
         phone: "",
       });
 
+      // Show success message with details
+      const totalTicketsPurchased = Object.values(ticketQuantities).reduce((sum, qty) => sum + qty, 0);
       setShowSuccessModal(true);
+      
+      // Log success details
+      const action = selectedTicket.is_free ? 'claimed' : 'purchased';
+      console.log(`Successfully ${action} ${totalTicketsPurchased} tickets for event ${eventId}`);
     } catch (error) {
-      console.error('Error claiming ticket:', error);
-      alert('Failed to claim ticket. Please try again.');
+      console.error('Error processing ticket:', error);
+      const action = selectedTicket?.is_free ? 'claim' : 'purchase';
+      alert(`Failed to ${action} ticket. Please try again.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -539,6 +616,12 @@ const ContactInformationPage = ({
 
   const isFormValid =
     formData.firstName && formData.lastName && formData.email && formData.phone;
+
+  // Determine if selected tickets are free or paid
+  const hasSelectedTickets = Object.values(ticketQuantities).some(quantity => quantity > 0);
+  const selectedTicketId = Object.keys(ticketQuantities).find(id => ticketQuantities[id] > 0);
+  const selectedTicket = tickets.find(ticket => ticket.id === selectedTicketId);
+  const isSelectedTicketFree = selectedTicket?.is_free || false;
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -612,7 +695,12 @@ const ContactInformationPage = ({
                     : "bg-[#092C4C] text-white hover:bg-[#0a3a5c] transition-colors"
                 }`}
               >
-                {isSubmitting ? "Processing..." : "Proceed"}
+                {isSubmitting 
+                  ? "Processing..." 
+                  : isSelectedTicketFree 
+                    ? "Claim Free Ticket" 
+                    : "Purchase Ticket"
+                }
               </button>
             </form>
           </div>
@@ -621,7 +709,7 @@ const ContactInformationPage = ({
           <SummaryCard
             total={total}
             summaryItems={summaryItems}
-            buttonLabel="Get Ticket"
+            buttonLabel={isSelectedTicketFree ? "Claim Free Ticket" : "Purchase Ticket"}
             onButtonClick={() => {}}
             disabled={!isFormValid}
           />

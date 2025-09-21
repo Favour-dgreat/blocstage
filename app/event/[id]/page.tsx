@@ -35,7 +35,7 @@ const EventPage = ({ params }: EventPageProps) => {
       <main className="flex-1 mt-12">
         <EventDetails eventId={id} />
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };

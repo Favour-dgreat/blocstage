@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { createSlug } from "@/lib/slugUtils";
 import {
   MapPin,
   Ticket,
@@ -51,6 +52,9 @@ const EventDashboard = () => {
   );
   const [activeTab, setActiveTab] = useState("Upcoming");
   const [userData, setUserData] = useState<UserData>({ name: "User", email: "" });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreEvents, setHasMoreEvents] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const router = useRouter();
 
   // Fetch user data
@@ -96,15 +100,14 @@ const EventDashboard = () => {
           return;
         }
         
-        // Fetch user's events
-        const eventResponse = await fetch("https://api.blocstage.com/events", {
+        // Fetch organizer's events with pagination
+        const eventResponse = await fetch(`https://api.blocstage.com/events/organizer?page=${currentPage}&limit=20`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${authToken}`,
           },
         });
-
 
         if (!eventResponse.ok) {
           const errorText = await eventResponse.text();
@@ -121,13 +124,37 @@ const EventDashboard = () => {
 
         const eventData = await eventResponse.json();
         
+        // If it's the first page, replace events, otherwise append
+        if (currentPage === 1) {
         setEvents(eventData);
+        } else {
+          setEvents(prevEvents => [...prevEvents, ...eventData]);
+        }
 
-        // Calculate event overview data
+        // Check if there are more events (assuming API returns less than limit if no more)
+        setHasMoreEvents(eventData.length === 20);
+
+        // Fetch analytics data for all events
+        const allEvents = currentPage === 1 ? eventData : [...events, ...eventData];
+        const analyticsPromises = allEvents.map(async (event: Event) => {
+          const analytics = await fetchEventAnalytics(event.id);
+          return {
+            ...event,
+            tickets_sold: Number(analytics.total_tickets_sold) || 0,
+            revenue: Number(analytics.total_revenue) || 0,
+          };
+        });
+
+        const eventsWithAnalytics = await Promise.all(analyticsPromises);
+        
+        // Update events with analytics data
+        setEvents(eventsWithAnalytics);
+
+        // Calculate event overview data using analytics data
         const overview = {
-          totalEventsCreated: eventData.length,
-          totalTicketsSold: eventData.reduce((sum: number, event: Event) => sum + (event.tickets_sold ?? 0), 0),
-          totalRevenueGenerated: eventData.reduce((sum: number, event: Event) => sum + (event.revenue ?? 0), 0),
+          totalEventsCreated: eventsWithAnalytics.length,
+          totalTicketsSold: eventsWithAnalytics.reduce((sum: number, event: Event) => sum + Number(event.tickets_sold || 0), 0),
+          totalRevenueGenerated: eventsWithAnalytics.reduce((sum: number, event: Event) => sum + Number(event.revenue || 0), 0),
         };
         
         setEventOverview(overview);
@@ -141,14 +168,16 @@ const EventDashboard = () => {
     };
 
     fetchEventData();
-  }, []);
+  }, [currentPage]);
 
   // Function to fetch individual event details if needed
   const fetchEventById = async (eventId: string) => {
     try {
       const authToken = localStorage.getItem("authToken");
       if (!authToken) {
-        throw new Error("No authentication token found");
+        alert("Please log in to view event details.");
+        router.push("/login");
+        return null;
       }
 
       const response = await fetch(`https://api.blocstage.com/events/${eventId}`, {
@@ -170,10 +199,57 @@ const EventDashboard = () => {
     }
   };
 
+  // Function to fetch analytics data for an event
+  const fetchEventAnalytics = async (eventId: string) => {
+    try {
+      const authToken = localStorage.getItem("authToken");
+      if (!authToken) {
+        alert("Please log in to view analytics.");
+        router.push("/login");
+        return { total_tickets_sold: 0, total_revenue: 0 };
+      }
+
+      const response = await fetch(`https://api.blocstage.com/events/${eventId}/analytics`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        // If analytics endpoint fails, return default values
+        return { total_tickets_sold: 0, total_revenue: 0 };
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching event analytics:", error);
+      // Return default values if analytics fetch fails
+      return { total_tickets_sold: 0, total_revenue: 0 };
+    }
+  };
+
+  // Function to load more events
+  const loadMoreEvents = async () => {
+    if (loadingMore || !hasMoreEvents) return;
+    
+    setLoadingMore(true);
+    try {
+      setCurrentPage(prevPage => prevPage + 1);
+    } catch (e) {
+      console.error("Failed to load more events:", e);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   // Function to refresh events data
   const refreshEvents = async () => {
     setLoading(true);
     setError(null);
+    setCurrentPage(1);
+    setEvents([]);
     
     try {
       const authToken = localStorage.getItem("authToken");
@@ -183,7 +259,7 @@ const EventDashboard = () => {
         return;
       }
 
-      const eventResponse = await fetch("https://api.blocstage.com/events", {
+      const eventResponse = await fetch("https://api.blocstage.com/events/organizer?page=1&limit=20", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -202,12 +278,25 @@ const EventDashboard = () => {
       }
 
       const eventData = await eventResponse.json();
-      setEvents(eventData);
+      
+      // Fetch analytics data for all events
+      const analyticsPromises = eventData.map(async (event: Event) => {
+        const analytics = await fetchEventAnalytics(event.id);
+        return {
+          ...event,
+          tickets_sold: Number(analytics.total_tickets_sold) || 0,
+          revenue: Number(analytics.total_revenue) || 0,
+        };
+      });
+
+      const eventsWithAnalytics = await Promise.all(analyticsPromises);
+      setEvents(eventsWithAnalytics);
+      setHasMoreEvents(eventsWithAnalytics.length === 20);
 
       setEventOverview({
-        totalEventsCreated: eventData.length,
-        totalTicketsSold: eventData.reduce((sum: number, event: Event) => sum + (event.tickets_sold ?? 0), 0),
-        totalRevenueGenerated: eventData.reduce((sum: number, event: Event) => sum + (event.revenue ?? 0), 0),
+        totalEventsCreated: eventsWithAnalytics.length,
+        totalTicketsSold: eventsWithAnalytics.reduce((sum: number, event: Event) => sum + Number(event.tickets_sold || 0), 0),
+        totalRevenueGenerated: eventsWithAnalytics.reduce((sum: number, event: Event) => sum + Number(event.revenue || 0), 0),
       });
     } catch (e) {
       setError("Failed to refresh event data.");
@@ -250,7 +339,7 @@ const EventDashboard = () => {
         <div className="text-center">
           <p className="text-red-500 mb-4">{error}</p>
           <button 
-            onClick={() => window.location.reload()} 
+            onClick={() => router.refresh()} 
             className="px-4 py-2 bg-[#092C4C] text-white rounded hover:bg-[#0a3a5c]"
           >
             Retry
@@ -315,7 +404,7 @@ const EventDashboard = () => {
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {eventOverview?.totalRevenueGenerated ?? 0}
+                {Number(eventOverview?.totalRevenueGenerated ?? 0).toLocaleString()} USDC
               </p>
               <p className="text-xs sm:text-sm text-gray-500">Total Revenue Generated</p>
             </div>
@@ -363,7 +452,8 @@ const EventDashboard = () => {
         </div>
 
         {filteredEvents.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredEvents.map((event) => (
               <Card
                 key={event.id} // Use the unique ID as the key
@@ -416,34 +506,48 @@ const EventDashboard = () => {
                     </div>
                     <span className="text-gray-500 text-sm">Tickets sold</span>
                   </div>
-                  <Link href={`/event/${event.id}`} passHref legacyBehavior>
-                    <Button className="w-full mt-4 bg-[#0C2D48] text-white hover:bg-[#0C2D48]">
-                      View Event
-                    </Button>
-                  </Link>
+                  <div className="space-y-2 mt-4">
+                    <Link href={`/events/${createSlug(event.title)}--${event.id}`} passHref legacyBehavior>
+                      <Button className="w-full bg-[#0C2D48] text-white hover:bg-[#0C2D48]">
+                        View Event
+                      </Button>
+                    </Link>
+                    <Link href={`/event/${event.id}`} passHref legacyBehavior>
+                      <Button className="w-full bg-[#F4511E] text-white hover:bg-[#e03e0c]">
+                        Edit Event
+                      </Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
+            
+            {/* Load More Button */}
+            {hasMoreEvents && (
+              <div className="flex justify-center mt-8">
+                <Button
+                  onClick={loadMoreEvents}
+                  disabled={loadingMore}
+                  className="bg-[#0C2D48] text-white hover:bg-[#0C2D48] px-8 py-3"
+                >
+                  {loadingMore ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Loading...
+                    </div>
+                  ) : (
+                    "Load More Events"
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="flex flex-col items-center justify-center p-12 bg-white rounded-lg shadow-md text-center">
-            <div className="text-center mb-4 p-4 bg-yellow-50 rounded-lg">
-              <p className="text-sm text-yellow-800 mb-2">Debug Info:</p>
-              <p className="text-xs text-yellow-700">Total events: {events.length}</p>
-              <p className="text-xs text-yellow-700">Filtered events: {filteredEvents.length}</p>
-              <p className="text-xs text-yellow-700">Active tab: {activeTab}</p>
-              <p className="text-xs text-yellow-700">Loading: {loading.toString()}</p>
-              <p className="text-xs text-yellow-700">Error: {error || 'None'}</p>
-            </div>
-            <Image
-              src="/images/no-events.png"
-              alt="No Events"
-              width={150}
-              height={150}
-              className="mb-4"
-            />
-            <p className="text-lg font-semibold text-gray-900">No Events</p>
-            <p className="text-gray-500 mb-6">You are yet to create an event</p>
+            
+            <p className="text-lg font-semibold text-gray-900">No {activeTab} Events</p>
+            <p className="text-gray-500 mb-6">Create an event today!</p>
             <Link href="/createevent" passHref legacyBehavior>
               <Button className="bg-[#0C2D48] text-white hover:bg-blue-800">
                 Create Event

@@ -9,8 +9,9 @@ import {
 
 import SpeakerCard from "@/components/SpeakerCard";
 import ShareButton from "@/components/ShareButton";
-import Header from "@/components/Header";
+import Header2 from "@/components/Header2";
 import Footer from "@/components/Footer";
+import { extractEventIdFromSlug, createSlug, findEventByTitleSlug } from "@/lib/slugUtils";
 type Session = {
   title: string;
   start_time: string;
@@ -52,17 +53,46 @@ export async function generateStaticParams() {
   const response = await fetch('https://api.blocstage.com/events');
   const events = await response.json();
   return events.map((event: EventData) => ({
-    id: event.id,
+    id: createSlug(event.title), // Only use title slug, no ID
   }));
 }
 
 export default async function EventPage({ params }: { params: { id: string } }) {
   const { id } = params;
   
+  // Check if this is the old format (with --ID) or new format (title only)
+  let eventId: string;
+  let eventTitle: string;
+  
+  if (id.includes('--')) {
+    // Old format: extract ID from slug
+    eventId = extractEventIdFromSlug(id);
+    eventTitle = id.split('--')[0].replace(/-/g, ' ');
+  } else {
+    // New format: find event by title slug
+    const eventInfo = await findEventByTitleSlug(id);
+    if (!eventInfo) {
+      return (
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-center">
+            <p className="text-red-500 text-lg mb-2">Event not found.</p>
+            <p className="text-gray-600 text-sm">Looking for: {id}</p>
+            <p className="text-gray-500 text-xs mt-2">
+              Make sure the event title matches exactly in the URL.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    eventId = eventInfo.id;
+    eventTitle = eventInfo.title;
+  }
+
+  
   // Fetch event data and sessions in parallel
   const [eventResponse, sessions] = await Promise.all([
-    fetch(`https://api.blocstage.com/events/${id}`),
-    fetchEventSessions(id)
+    fetch(`https://api.blocstage.com/events/${eventId}`),
+    fetchEventSessions(eventId)
   ]);
   
   if (!eventResponse.ok) {
@@ -101,13 +131,11 @@ export default async function EventPage({ params }: { params: { id: string } }) 
     minute: '2-digit',
     hour12: true,
   })}`;
-
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
-                <Header/>
-      {/* Header with Event Title and Use Template Button */}
-       
+                <Header2/>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 max-w-7xl">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">

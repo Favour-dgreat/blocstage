@@ -4,6 +4,7 @@ import Image from "next/image";
 
 const OTPPage = () => {
   const [otp, setOtp] = useState(["", "", "", ""]);
+  const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<HTMLInputElement[]>([]);
 
   const handleChange = (index: number, value: string) => {
@@ -17,21 +18,48 @@ const OTPPage = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const otpCode = otp.join("");
-    // Validate and submit OTP here
+    
+    if (otpCode.length !== 4) {
+      alert("Please enter a complete 4-digit code");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Simulate API call - replace with actual OTP verification
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Here you would typically make an API call to verify the OTP
+      // const response = await fetch("https://api.blocstage.com/auth/verify-otp", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ otp: otpCode })
+      // });
+      
+      // For now, just simulate success
+      alert("OTP verified successfully!");
+    } catch (error) {
+      console.error("OTP verification error:", error);
+      alert("Invalid OTP. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="flex min-h-screen">
        <div className="absolute px-10 md:px-24 mt-6">
-                      <Image className="justify-center items-center"
-                      src="/images/logoorange.png"
-                      alt="blocStage"
-                      width={120}
-                      height={32}
-                      />
+                      <a href="/landingpage" className="cursor-pointer">
+                        <Image className="justify-center items-center"
+                        src="/images/logoorange.png"
+                        alt="blocStage"
+                        width={120}
+                        height={32}
+                        />
+                      </a>
                   </div>
       {/* Left Side */}
       <div className="flex-1 flex flex-col justify-center items-center px-10 md:px-24 bg-white ">
@@ -88,9 +116,22 @@ const OTPPage = () => {
               {/* Button */}
               <button
                 type="submit"
-                className="w-full py-3 px-4 bg-[#0C2D48] text-white rounded-md font-semibold hover:bg-[#0a263c] transition"
+                disabled={isLoading}
+                className={`w-full py-3 px-4 bg-[#0C2D48] text-white rounded-md font-semibold hover:bg-[#0a263c] transition flex items-center justify-center ${
+                  isLoading ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
               >
-                Create Account
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Verifying...
+                  </>
+                ) : (
+                  'Create Account'
+                )}
               </button>
             </div>
           </form>

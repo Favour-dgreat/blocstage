@@ -39,12 +39,14 @@ const ForgotPasswordPage = () => {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
       {/* Logo Section */}
       <div className="absolute top-6 left-6">
-        <Image
-         src="/images/logoorange.png"
-          alt="Company Logo"
-          width={150}
-          height={40}
-        />
+        <a href="/landingpage" className="cursor-pointer">
+          <Image
+           src="/images/logoorange.png"
+            alt="Company Logo"
+            width={150}
+            height={40}
+          />
+        </a>
       </div>
 
       <div className="bg-white p-8 md:p-12 rounded-lg shadow-lg max-w-md w-full text-center">

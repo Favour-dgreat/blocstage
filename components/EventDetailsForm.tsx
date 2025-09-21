@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { validateDateTimeRange, showDateTimeAlert } from "@/lib/dateValidation";
+import LocationMap from "./LocationMap";
 
 // Event data type
 export interface EventData {
@@ -171,6 +173,21 @@ export default function EventDetailsForm({
   ];
 
   const handleChange = (update: Partial<EventData>) => {
+    // Validate date/time if updating start_time or end_time
+    if (update.start_time !== undefined || update.end_time !== undefined) {
+      const newData = { ...localData, ...update };
+      const validation = validateDateTimeRange(
+        newData.start_time,
+        newData.end_time,
+        "Event"
+      );
+      
+      if (!validation.isValid) {
+        showDateTimeAlert(validation.message);
+        return; // Don't update if validation fails
+      }
+    }
+    
     const newData = { ...localData, ...update };
     setLocalData(newData);
     onUpdate(update); 
@@ -225,10 +242,10 @@ export default function EventDetailsForm({
         <label className="block text-sm font-medium text-[#BDBDBD] mb-4">
           Location
         </label>
-        <Input
+        <LocationMap
           value={localData.location}
-          onChange={(e) => handleChange({ location: e.target.value })}
-          placeholder="The Vibe Lounge, Warri, Delta State, Nigeria"
+          onChange={(location) => handleChange({ location })}
+          placeholder="Search for locations in Nigeria..."
           className="w-full"
         />
         <div className="flex items-center space-x-2 mt-2">

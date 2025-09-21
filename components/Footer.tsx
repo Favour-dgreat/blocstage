@@ -2,19 +2,21 @@ import Image from "next/image";
 
 const Footer = () => {
   return (
-    <footer className="bg-[#092C4C] lg:hidden text-white py-8 sm:py-12">
+    <footer className="bg-[#092C4C]  text-white py-8 sm:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
           <div>
             <div className="flex gap-4 sm:gap-10 items-center space-x-3 mb-2">
-              <Image
-                src="/images/blocsagelogo.png"
-                alt="BlocStage logo"
-                width={96}
-                height={96}
-                className="object-contain"
-                priority
-              />
+              <a href="/landingpage" className="cursor-pointer">
+                <Image
+                  src="/images/blocsagelogo.png"
+                  alt="BlocStage logo"
+                  width={96}
+                  height={96}
+                  className="object-contain"
+                  priority
+                />
+              </a>
             </div>
             <p className="text-gray-200 mt-5 text-md sm:text-md">
               More than events, it&apos;s an ecosystem.
