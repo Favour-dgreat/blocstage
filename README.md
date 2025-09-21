@@ -183,11 +183,6 @@ blocstage/
 
 ## 📚 Documentation
 
-### Core Features
-- [Session Management](./docs/SESSION_MANAGEMENT.md) - User session handling and timeout
-- [Sessions API Integration](./docs/SESSIONS_API_INTEGRATION.md) - Event sessions API integration
-- [Component Documentation](./docs/COMPONENTS.md) - Detailed component usage
-- [API Reference](./docs/API.md) - Backend API documentation
 
 ### Development Guides
 - [Contributing Guidelines](./CONTRIBUTING.md) - How to contribute to the project
@@ -200,13 +195,13 @@ blocstage/
 We welcome contributions from the community! Here's how you can help:
 
 ### 🐛 Bug Reports
-- Use the [GitHub Issues](https://github.com/yourusername/blocstage/issues) to report bugs
+- Use the [GitHub Issues](https://github.com/Favour-dgreat/blocstage/issues) to report bugs
 - Include detailed steps to reproduce the issue
 - Provide system information and browser details
 - Attach screenshots or error logs when possible
 
 ### 💡 Feature Requests
-- Submit feature requests via [GitHub Discussions](https://github.com/yourusername/blocstage/discussions)
+- Submit feature requests via [GitHub Discussions](https://github.com/Favour-dgreat/blocstage/discussions)
 - Describe the use case and expected behavior
 - Consider the impact on existing functionality
 - Provide mockups or examples when helpful
@@ -215,7 +210,7 @@ We welcome contributions from the community! Here's how you can help:
 
 1. **Fork the repository**
    ```bash
-   git clone https://github.com/yourusername/blocstage.git
+   git clone https://github.com/Favour-dgreat/blocstage.git
    cd blocstage
    ```
 
@@ -388,12 +383,12 @@ Please report security vulnerabilities privately to security@blocstage.com
 ## 🤝 Community
 
 ### 💬 Get Help
-- [GitHub Discussions](https://github.com/yourusername/blocstage/discussions) - Community discussions
+- [GitHub Discussions](https://github.com/Favour-dgreat/blocstage/discussions) - Community discussions
 - [Discord Server](https://discord.gg/blocstage) - Real-time chat support
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/blocstage) - Technical questions
 
 ### 📢 Stay Updated
-- [GitHub Releases](https://github.com/yourusername/blocstage/releases) - Release notes
+- [GitHub Releases](https://github.com/Favour-dgreat/blocstage/releases) - Release notes
 - [Newsletter](https://blocstage.com/newsletter) - Monthly updates
 - [Twitter](https://twitter.com/blocstage) - Latest news and updates
 
@@ -409,14 +404,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Radix UI** - For accessible component primitives
 - **Contributors** - All the amazing people who contribute to this project
 
-## 📞 Support
 
-- **Documentation**: [docs.blocstage.com](https://docs.blocstage.com)
-- **Email**: support@blocstage.com
-- **GitHub Issues**: [Report a bug](https://github.com/yourusername/blocstage/issues)
-- **Discord**: [Join our community](https://discord.gg/blocstage)
-
----
 
 <div align="center">
 
