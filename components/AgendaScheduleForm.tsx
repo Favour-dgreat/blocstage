@@ -151,22 +151,7 @@ export default function AgendaScheduleForm({
       session.id === id ? { ...session, [field]: value } : session
     );
     
-    // Validate date/time if updating start_time or end_time
-    // if (field === 'start_time' || field === 'end_time') {
-    //   const session = updatedSessions.find(s => s.id === id);
-    //   if (session) {
-    //     const validation = validateDateTimeRange(
-    //       session.start_time,
-    //       session.end_time,
-    //       `Session "${session.title || 'Untitled'}"`
-    //     );
-        
-    //     if (!validation.isValid) {
-    //       showDateTimeAlert(validation.message);
-    //       return; // Don't update if validation fails
-    //     }
-    //   }
-    // }
+   
     
     setSessions(updatedSessions);
     onUpdate({ sessions: updatedSessions });

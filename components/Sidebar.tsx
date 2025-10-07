@@ -143,6 +143,8 @@ export default function Sidebar() {
             return (
               <div
                 key={index}
+                onClick={item.title === 'Events' ? () => router.push('/viewevent') : undefined}   
+
                 className={`flex items-center justify-between px-3 py-4 rounded-lg cursor-pointer transition-colors ${
                   item.active
                     ? 'bg-orange-50 text-orange-600'

@@ -223,6 +223,39 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
   const formattedStartTime = formatTime(eventData.start_time);
   const formattedEndTime = formatTime(eventData.end_time);
 
+  const handleCancelEvent = async () => {
+    const userConfirmed = window.confirm("Are you sure you want to cancel this event? This action cannot be undone.");
+    if (!userConfirmed) return;
+
+    try {
+      const authToken = localStorage.getItem("authToken");
+      if (!authToken) {
+        alert("Please log in to cancel the event.");
+        router.push("/login");
+        return;
+      }
+
+      const response = await fetch(`https://api.blocstage.com/events/${eventId}/cancel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP error! Status: ${response.status} - ${errorText}`);
+      }
+
+      alert("Event cancelled successfully.");
+      router.push("/viewevent");
+    } catch (e: any) {
+      console.error("Failed to cancel event:", e);
+      alert(`Failed to cancel event: ${e.message}`);
+    }
+  };
+
   return (
     <div className="md:ml-64 max-w-6xl mx-auto px-8 py-8 bg-[#F8F8F8] min-h-screen p-6 sm:p-8 md:p-12">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -246,13 +279,16 @@ const EventDetails = ({ eventId }: EventDetailsProps) => {
             <h1 className="text-3xl font-bold text-[#282828] mb-4 lg:mb-0">
               {eventData.title}
             </h1>
-            
+            <div className="flex flex-col gap-2">
             <a href={`/edit-event/${eventData.id}`}>
               <button className="bg-[#0C2D48] text-white px-6 py-3 rounded-md font-medium text-sm hover:bg-[#092C4C] transition-colors self-start lg:self-auto">
                 Edit Event Details
               </button>
             </a>
-          
+            <button onClick={handleCancelEvent} className="bg-[#E04E1E] text-white px-6 py-3 rounded-md font-medium text-sm hover:bg-orange-600 transition-colors self-start lg:self-auto">
+                Cancel Event
+              </button>
+            </div>
           </div>
 
           {/* Event Info - Date, Time, Location */}

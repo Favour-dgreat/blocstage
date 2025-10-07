@@ -33,7 +33,7 @@ export default function EventPreview({ data, onBack, onPublish, isLoading = fals
   };
 
   const formatSessionTime = (startTime: string, endTime: string) => {
-    if (!startTime || !endTime) return '20 mins';
+    if (!startTime || !endTime) return 'No time set';
     
     const start = new Date(startTime);
     const end = new Date(endTime);
@@ -58,11 +58,14 @@ export default function EventPreview({ data, onBack, onPublish, isLoading = fals
               className="w-full h-full object-cover"
             />
           ) : (
-            <img 
-              src="https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=800&h=400&dpr=2"
-              alt="Event"
-              className="w-full h-full object-cover"
-            />
+            
+                  <div className="w-full h-full bg-gray-300 rounded-lg flex items-center justify-center">
+                    <span className="text-gray-500 text-xs font-medium">
+                      {data.title}
+                    </span>
+                  </div>
+               
+           
           )}
         </div>
 

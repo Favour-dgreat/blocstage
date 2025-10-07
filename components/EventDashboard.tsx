@@ -30,6 +30,7 @@ type Event = {
   revenue?: number;
   status?: string;
   category?: string;
+  short_code?: string;
 };
 
 type EventOverview = {
@@ -170,8 +171,8 @@ const EventDashboard = () => {
     fetchEventData();
   }, [currentPage]);
 
-  // Function to fetch individual event details if needed
-  const fetchEventById = async (eventId: string) => {
+  // Function to fetch individual event details using short_code
+  const fetchEventByShortCode = async (shortCode: string) => {
     try {
       const authToken = localStorage.getItem("authToken");
       if (!authToken) {
@@ -180,7 +181,7 @@ const EventDashboard = () => {
         return null;
       }
 
-      const response = await fetch(`https://api.blocstage.com/events/${eventId}`, {
+      const response = await fetch(`https://api.blocstage.com/e/${shortCode}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -310,9 +311,19 @@ const EventDashboard = () => {
     const now = new Date();
     switch (activeTab) {
       case "Upcoming":
-        return events.filter((event) => new Date(event.start_time) > now);
+        return events.filter((event) => {
+          const isUpcoming = new Date(event.start_time) > now;
+          const status = (event.status || "").toLowerCase();
+          const isCancelled = status === "cancelled" || status === "canceled";
+          return isUpcoming && !isCancelled;
+        });
       case "Ended":
         return events.filter((event) => new Date(event.start_time) < now);
+      case "Cancelled":
+        return events.filter((event) =>
+          (event.status || "").toLowerCase() === "cancelled" ||
+          (event.status || "").toLowerCase() === "canceled"
+        );
       case "All Events":
       default:
         return events;
@@ -448,6 +459,14 @@ const EventDashboard = () => {
           >
             Ended
           </button>
+          <button
+            onClick={() => setActiveTab("Cancelled")}
+            className={`font-semibold text-sm sm:text-base px-2 py-1 ${
+              activeTab === "Cancelled" ? "text-[#F4511E] border-b-2 border-[#F4511E]" : "hover:text-gray-800"
+            }`}
+          >
+            Cancelled
+          </button>
           
         </div>
 
@@ -507,7 +526,7 @@ const EventDashboard = () => {
                     <span className="text-gray-500 text-sm">Tickets sold</span>
                   </div>
                   <div className="space-y-2 mt-4">
-                    <Link href={`/events/${createSlug(event.title)}--${event.id}`} passHref legacyBehavior>
+                    <Link href={`/events/${event.short_code || `${createSlug(event.title)}--${event.id}`}`} passHref legacyBehavior>
                       <Button className="w-full bg-[#0C2D48] text-white hover:bg-[#0C2D48]">
                         View Event
                       </Button>
@@ -549,7 +568,7 @@ const EventDashboard = () => {
             <p className="text-lg font-semibold text-gray-900">No {activeTab} Events</p>
             <p className="text-gray-500 mb-6">Create an event today!</p>
             <Link href="/createevent" passHref legacyBehavior>
-              <Button className="bg-[#0C2D48] text-white hover:bg-blue-800">
+              <Button className="bg-[#0C2D48] text-white hover:bg-[#0C2D48]">
                 Create Event
               </Button>
             </Link>

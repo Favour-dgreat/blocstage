@@ -204,7 +204,7 @@ export default function Home() {
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center space-x-4">
              
-              <a href="signup">
+              <a href="login">
                 <Button className="bg-[#E04E1E] hover:bg-orange-600 text-white hover:cursor-pointer px-4 py-3 text-sm font-medium rounded-md">
                   Get Started
                 </Button>

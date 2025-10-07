@@ -45,7 +45,7 @@ const eventPage = () => {
       <main className="flex-1 mt-12">
         <EventCreationWizard />
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
   };

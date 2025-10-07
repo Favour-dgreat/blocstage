@@ -32,7 +32,7 @@ const EventPage = ({ params }: EventPageProps) => {
       <div className="hidden md:block">
         <Sidebar />
       </div>
-      <main className="flex-1 mt-12">
+      <main className="flex-1 py-20 mt-12">
         <EventDetails eventId={id} />
       </main>
       {/* <Footer /> */}

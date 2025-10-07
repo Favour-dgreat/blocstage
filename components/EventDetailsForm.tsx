@@ -174,19 +174,7 @@ export default function EventDetailsForm({
 
   const handleChange = (update: Partial<EventData>) => {
     // Validate date/time if updating start_time or end_time
-    if (update.start_time !== undefined || update.end_time !== undefined) {
-      const newData = { ...localData, ...update };
-      const validation = validateDateTimeRange(
-        newData.start_time,
-        newData.end_time,
-        "Event"
-      );
-      
-      if (!validation.isValid) {
-        showDateTimeAlert(validation.message);
-        return; // Don't update if validation fails
-      }
-    }
+    
     
     const newData = { ...localData, ...update };
     setLocalData(newData);

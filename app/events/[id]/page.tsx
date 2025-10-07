@@ -59,17 +59,23 @@ export async function generateStaticParams() {
 
 export default async function EventPage({ params }: { params: { id: string } }) {
   const { id } = params;
-  
-  // Check if this is the old format (with --ID) or new format (title only)
-  let eventId: string;
-  let eventTitle: string;
-  
-  if (id.includes('--')) {
-    // Old format: extract ID from slug
+
+  // Try treating the param as a direct identifier (supports short_code or id)
+  let eventId: string | null = null;
+  let eventTitle: string | null = null;
+
+  // First attempt: direct fetch using the param as short_code
+  const directResponse = await fetch(`https://api.blocstage.com/e/${id}`);
+  if (directResponse.ok) {
+    const directEvent: EventData = await directResponse.json();
+    eventId = directEvent.id;
+    eventTitle = directEvent.title;
+  } else if (id.includes('--')) {
+    // Legacy format: title--ID
     eventId = extractEventIdFromSlug(id);
     eventTitle = id.split('--')[0].replace(/-/g, ' ');
   } else {
-    // New format: find event by title slug
+    // Legacy format: title slug only
     const eventInfo = await findEventByTitleSlug(id);
     if (!eventInfo) {
       return (
@@ -154,7 +160,6 @@ export default async function EventPage({ params }: { params: { id: string } }) 
               <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
                 <div className="text-center text-white px-4">
                   <h2 className="text-xl sm:text-2xl font-bold mb-2">{event.title}</h2>
-                  <p className="text-base sm:text-lg opacity-90">Event Banner</p>
                 </div>
               </div>
             )}

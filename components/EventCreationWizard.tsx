@@ -253,8 +253,8 @@ export default function EventCreationWizard() {
       }
 
       alert("Event published successfully!");
-      const eventSlug = createSlug(eventData.title);
-      router.push(`/events/${eventSlug}`);
+      const destination = `/viewevent`;
+      router.push(destination);
 
       
     } catch (error: any) {
