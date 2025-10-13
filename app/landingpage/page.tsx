@@ -264,8 +264,8 @@ export default function Home() {
         <div className="relative z-10 max-w-7xl mx-auto text-left w-full px-2 sm:px-4 lg:px-8">
           <div className="max-w-4xl">
             <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight text-white mb-6">
-              Host <span className="text-[#E04E1E]">Events</span> People
-              Remember. Build <br />{" "}
+              Host <span className="text-[#E04E1E]">Events</span> You
+              Can Remember. Build <br />{" "}
               <span className="text-[#E04E1E]">Communities</span> That Last.
             </h1>
             <p className="text-xl sm:text-base md:text-xl text-white mb-8 font-normal max-w-2xl">
